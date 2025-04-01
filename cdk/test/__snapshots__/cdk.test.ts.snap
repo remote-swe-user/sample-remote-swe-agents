@@ -1631,7 +1631,7 @@ exports[`Snapshot test 1`] = `
           "ImageId": {
             "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61x8664C96584B6F00A464EAD1953AFF4B05118Parameter",
           },
-          "InstanceType": "t3.medium",
+          "InstanceType": "t3.large",
           "MetadataOptions": {
             "HttpTokens": "required",
             "InstanceMetadataTags": "enabled",
@@ -1713,7 +1713,7 @@ mv gh-token /usr/bin
 
 
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
-WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/WorkerId)
+WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
 SLACK_CHANNEL_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
 SLACK_THREAD_TS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
 SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query "Parameter.Value" --output text)

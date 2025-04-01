@@ -15,7 +15,7 @@ async function findWorkerInstanceWithStatus(workerId: string, statuses: string[]
   const describeCommand = new DescribeInstancesCommand({
     Filters: [
       {
-        Name: 'tag:WorkerId',
+        Name: 'tag:RemoteSweWorkerId',
         Values: [workerId],
       },
       {
@@ -74,7 +74,7 @@ async function createWorkerInstance(
         ResourceType: 'instance',
         Tags: [
           {
-            Key: 'WorkerId',
+            Key: 'RemoteSweWorkerId',
             Value: workerId,
           },
           {

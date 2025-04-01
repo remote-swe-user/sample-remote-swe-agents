@@ -12,7 +12,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 
 export interface WorkerProps {
   vpc: ec2.IVpc;
-  table: ITableV2;
+  storageTable: ITableV2;
   imageBucket: IBucket;
   slackBotTokenParameter: IStringParameter;
   gitHubApp?: {
@@ -92,7 +92,7 @@ export class Worker extends Construct {
 
     const launchTemplate = new ec2.LaunchTemplate(this, 'LaunchTemplate', {
       machineImage: ec2.MachineImage.latestAmazonLinux2023(),
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.LARGE),
       blockDevices: [
         {
           deviceName: '/dev/xvda',
@@ -162,7 +162,7 @@ mv gh-token /usr/bin
 
     userData.addCommands(`
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
-WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/WorkerId)
+WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
 SLACK_CHANNEL_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
 SLACK_THREAD_TS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
 SLACK_BOT_TOKEN=$(aws ssm get-parameter --name ${props.slackBotTokenParameter.parameterName} --query "Parameter.Value" --output text)
@@ -208,7 +208,7 @@ Environment=GITHUB_APP_PRIVATE_KEY_PATH=${privateKey ? '/opt/private-key.pem' : 
 Environment=GITHUB_APP_ID=${props.gitHubApp?.appId ?? ''}
 Environment=GITHUB_APP_INSTALLATION_ID=${props.gitHubApp?.installationId ?? ''}
 Environment=GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN
-Environment=TABLE_NAME=${props.table.tableName}
+Environment=TABLE_NAME=${props.storageTable.tableName}
 Environment=BUCKET_NAME=${props.imageBucket.bucketName}
 Environment=BEDROCK_AWS_ACCOUNTS=${props.loadBalancing?.awsAccounts.join(',') ?? ''}
 Environment=BEDROCK_AWS_ROLE_NAME=${props.loadBalancing?.roleName ?? ''}
@@ -302,7 +302,7 @@ systemctl start myapp
       })
     );
     sourceBucket.grantRead(role);
-    props.table.grantReadWriteData(role);
+    props.storageTable.grantReadWriteData(role);
     props.imageBucket.grantReadWrite(role);
     privateKey?.grantRead(role);
     props.githubPersonalAccessTokenParameter?.grantRead(role);

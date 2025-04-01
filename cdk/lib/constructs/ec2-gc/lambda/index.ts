@@ -10,7 +10,7 @@ export const handler = async () => {
   // インスタンスを検索するためのフィルター条件
   const describeParams = {
     Filters: [
-      { Name: 'tag-key', Values: ['WorkerId'] },
+      { Name: 'tag-key', Values: ['RemoteSweWorkerId'] },
       { Name: 'instance-state-name', Values: ['stopped'] },
     ],
   };

@@ -54,6 +54,10 @@ export class MainStack extends cdk.Stack {
     const vpc = new Vpc(this, 'VpcV2', {
       subnetConfiguration: [
         {
+          // We use public subnets for worker EC2 instances. Here are the reasons:
+          //   1. to remove NAT Gateway cost
+          //   2. to avoid from IP address restriction from external services
+          // All the instances are securely protected by security groups without any inbound rules.
           subnetType: SubnetType.PUBLIC,
           name: 'Public',
           cidrMask: 20,
@@ -65,7 +69,7 @@ export class MainStack extends cdk.Stack {
 
     const worker = new Worker(this, 'Worker', {
       vpc,
-      table: storage.table,
+      storageTable: storage.table,
       imageBucket: storage.bucket,
       slackBotTokenParameter: botToken,
       ...('appId' in props.github
@@ -94,10 +98,10 @@ export class MainStack extends cdk.Stack {
       botTokenParameter: botToken,
       signingSecretParameter: signingSecret,
       launchTemplateId: worker.launchTemplate.launchTemplateId!,
-      subnetIdList: vpc.publicSubnets.map((s) => s.subnetId).join(','),
+      subnetIdListForWorkers: vpc.publicSubnets.map((s) => s.subnetId).join(','),
       workerBus: worker.bus,
-      table: storage.table,
-      bucket: storage.bucket,
+      storageTable: storage.table,
+      storageBucket: storage.bucket,
       adminUserIdList: props.slack.adminUserIdList,
       workerLogGroupName: worker.logGroup.logGroupName,
     });

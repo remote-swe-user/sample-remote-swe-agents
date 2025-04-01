@@ -73,33 +73,15 @@ cd slack-bolt-app && npm run dev
 cd slack-bolt-app && npm run build
 ```
 
-## Important Design Information
-
-### DynamoDB Table Design
-
-- **PK**: `message-{workerId}` or `metadata-{workerId}`
-- **SK**: Timestamp (for messages) or 'metadata' (for metadata)
-- Messages are stored and retrieved for each session
-
-### Repository Metadata
-
-The following information is stored when cloning a repository:
-- Repository organization name
-- Repository name
-- Whether it's a fork
-- Local directory path
-
 ## Development Flow
 
 1. Create a branch for a new feature or bug fix
 2. Implement changes and test
 3. Run format and type checks
-4. Create a PR and ensure CI passes
-5. Merge after review
+4. Create a PR and ensure CI passes. The PR title should always be in English.
+5. Request review when the PR is ready (i.e. when you implemented all the requested features and all the CI passes.)
 
 ## Troubleshooting
 
-- **DynamoDB access errors**: Verify AWS credentials are correctly configured
-- **Slack app connection errors**: Check that Slack tokens are set in environment variables
 - **Build errors**: Check that dependencies are up to date (`npm ci` to update)
 - **TypeScript errors**: Ensure type definitions are accurate and use type assertions when necessary

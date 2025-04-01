@@ -15,10 +15,10 @@ export interface SlackBoltProps {
   signingSecretParameter: IStringParameter;
   botTokenParameter: IStringParameter;
   launchTemplateId: string;
-  subnetIdList: string;
+  subnetIdListForWorkers: string;
   workerBus: WorkerBus;
-  table: ITableV2;
-  bucket: IBucket;
+  storageTable: ITableV2;
+  storageBucket: IBucket;
   adminUserIdList?: string;
   workerLogGroupName: string;
 }
@@ -35,11 +35,11 @@ export class SlackBolt extends Construct {
       timeout: Duration.minutes(10),
       environment: {
         LAUNCH_TEMPLATE_ID: props.launchTemplateId,
-        SUBNET_ID_LIST: props.subnetIdList,
+        SUBNET_ID_LIST: props.subnetIdListForWorkers,
         BOT_TOKEN: botTokenParameter.stringValue,
         EVENT_HTTP_ENDPOINT: props.workerBus.httpEndpoint,
-        TABLE_NAME: props.table.tableName,
-        BUCKET_NAME: props.bucket.bucketName,
+        TABLE_NAME: props.storageTable.tableName,
+        BUCKET_NAME: props.storageBucket.bucketName,
       },
       architecture: Architecture.ARM_64,
       bundling: {
@@ -51,8 +51,8 @@ export class SlackBolt extends Construct {
         bundleAwsSDK: true,
       },
     });
-    props.table.grantReadWriteData(asyncHandler);
-    props.bucket.grantReadWrite(asyncHandler);
+    props.storageTable.grantReadWriteData(asyncHandler);
+    props.storageBucket.grantReadWrite(asyncHandler);
     props.workerBus.api.grantPublish(asyncHandler);
 
     const handler = new NodejsFunction(this, 'Handler', {
@@ -65,8 +65,8 @@ export class SlackBolt extends Construct {
         BOT_TOKEN: botTokenParameter.stringValue,
         ASYNC_LAMBDA_NAME: asyncHandler.functionName,
         EVENT_HTTP_ENDPOINT: props.workerBus.httpEndpoint,
-        TABLE_NAME: props.table.tableName,
-        BUCKET_NAME: props.bucket.bucketName,
+        TABLE_NAME: props.storageTable.tableName,
+        BUCKET_NAME: props.storageBucket.bucketName,
         LOG_GROUP_NAME: props.workerLogGroupName,
         ...(props.adminUserIdList ? { ADMIN_USER_ID_LIST: props.adminUserIdList } : {}),
       },
@@ -81,8 +81,8 @@ export class SlackBolt extends Construct {
       },
     });
     asyncHandler.grantInvoke(handler);
-    props.table.grantReadWriteData(handler);
-    props.bucket.grantReadWrite(handler);
+    props.storageTable.grantReadWriteData(handler);
+    props.storageBucket.grantReadWrite(handler);
     props.workerBus.api.grantPublish(handler);
 
     const api = new HttpApi(this, 'Api', {
