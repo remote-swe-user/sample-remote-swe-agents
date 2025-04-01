@@ -1,0 +1,38 @@
+name: Deploy-Prod
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+concurrency: ${{ github.workflow }}
+env:
+  ROLE_ARN: ${{ vars.IAM_ROLE_ARN }}
+  TARGET_ENV: 'Prod'
+  TARGET_AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID_LIST_FOR_LB: ${{ vars.PROD_AWS_ACCOUNT_ID_LIST_FOR_LB }}
+  ADMIN_USER_ID_LIST: ${{ vars.PROD_ADMIN_USER_ID_LIST }}
+  ROLE_NAME_FOR_LB: bedrock-remote-swe-role-prod
+jobs:
+  Deploy-cdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          role-session-name: gha-session
+          aws-region: ${{ env.TARGET_AWS_REGION }}
+      - run: |
+          npm ci
+          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+          npx cdk deploy --all --require-approval never
+        working-directory: ./cdk
+        name: build and deploy CDK
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout

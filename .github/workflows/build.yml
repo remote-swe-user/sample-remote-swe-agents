@@ -1,0 +1,66 @@
+name: Build
+on: 
+  push:
+    branches:
+    - main
+  workflow_dispatch:
+  pull_request:
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+jobs:
+  Build-and-Test-CDK:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - run: |
+          npm ci
+          npm run build
+          npm run format:check
+        working-directory: ./cdk
+        name: Run static analyses
+      - run: |
+          npm run test
+        working-directory: ./cdk
+        name: Run snapshot test
+  Build-and-Test-Slack-Bolt-App:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - run: |
+          npm ci
+          npm run build
+          npm run format:check
+        working-directory: ./slack-bolt-app
+        name: Run static analyses
+  Build-and-Test-Worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - run: |
+          npm ci
+          npm run format:check
+        working-directory: ./worker
+        name: Run static analyses
+      - run: |
+          npm run test
+        working-directory: ./worker
+        name: Run unit tests
+      - run: |
+          npm run build
+        working-directory: ./worker
+        name: Run next build
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
