@@ -2,6 +2,7 @@
 
 exports[`Snapshot test 1`] = `
 {
+  "Description": "Remote SWE Agents stack (uksb-lv52f92xel)",
   "Outputs": {
     "SlackBoltEndpointUrl89D2B06F": {
       "Value": {
