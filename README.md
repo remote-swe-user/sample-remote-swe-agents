@@ -1,6 +1,6 @@
 # Remote SWE Agents
 
-This is an example implementation of an fully autonomous software development AI agent. The agent works in its own dedicated development environment, which means you are now free from your laptops!
+This is an example implementation of a fully autonomous software development AI agent. The agent works in its own dedicated development environment, freeing you from being tied to your laptop!
 
 ![Concept](./docs/imgs/concept.png)
 
@@ -11,13 +11,13 @@ This is an example implementation of an fully autonomous software development AI
 * No upfront or fixed costs while you don't use the system
 * MCP integration (tool servers)
 * Unlimited context window (middle-out)
-* Read knowledge from your favorite format (.clinerules, CLAUDE.md, etc.)
+* Reads knowledge from your preferred formats (.clinerules, CLAUDE.md, etc.)
 * Can work on OSS forked repositories!
 
 ## Installation Steps
 
-Since this project is fully self-hosted, the setup process requires several manual operations such as Slack app setup.
-Please carefully follow all the steps below, and if you find any problem, we are willing to help you in GitHub issues!
+Since this project is fully self-hosted, the setup process requires several manual operations such as configuring a Slack app.
+Please carefully follow all the steps below. If you encounter any issues, we're ready to help you via GitHub issues!
 
 ### Prerequisites
 
@@ -32,12 +32,12 @@ Please carefully follow all the steps below, and if you find any problem, we are
 
 ```bash
 git clone [repository-url]
-cd remote-assistant
+cd sample-remote-swe-agents
 ```
 
 ### 2. Run CDK Deploy
 
-Before cdk deploy, you have to create placeholder SSM parameters which will later be populated with the actual values:
+Before running cdk deploy, you need to create placeholder SSM parameters that will later be populated with actual values:
 
 ```bash
 aws ssm put-parameter \
@@ -69,7 +69,7 @@ Deployment usually takes about 5 minutes. After the deployment, you should see t
 
 ### 3. Slack App Setup
 
-Now, you have to setup a Slack App to control agents from Slack interface.
+Now, you need to set up a Slack App to control agents through the Slack interface.
 
 #### Create a Slack App
 
@@ -77,16 +77,16 @@ Now, you have to setup a Slack App to control agents from Slack interface.
 2. Click "Create New App"
 3. Choose "From manifest"
 4. Use the provided Slack app manifest YAML file: [manifest.json](./resources/slack-app-manifest.json)
-   - Please replace the endpoint URL (`https://redacted.execute-api.us-east-1.amazonaws.com`) to the actual one
-5. Please take a note of the below values:
-   - Signing Secret (Basic Information)
-   - Bot Token (OAuth & Permission, after installing it to your workspace)
+   - Please replace the endpoint URL (`https://redacted.execute-api.us-east-1.amazonaws.com`) with your actual URL
+5. Please make note of the following values:
+   - Signing Secret (found in Basic Information)
+   - Bot Token (found in OAuth & Permissions, after installing to your workspace)
 
 > [!NOTE]
-> If you want to use a shared (not personal) Slack workspace, you may want to set `ADMIN_USER_ID_LIST` environment variable (see below) to control who can access the agents. Without setting this property, anyone in the workspace can access the agents and eventually your GitHub contents.
+> If you're using a shared (rather than personal) Slack workspace, consider setting the `ADMIN_USER_ID_LIST` environment variable (see below) to control agent access. Without this restriction, anyone in the workspace can access the agents and potentially your GitHub content.
 
 
-#### Create SSM Parameters for slack secrets
+#### Create SSM Parameters for Slack Secrets
 
 ```bash
 aws ssm put-parameter \
@@ -100,7 +100,7 @@ aws ssm put-parameter \
     --type String
 ```
 
-Replace `your-slack-bot-token` and `your-slack-signing-secret` with the actual values obtained from the above step.
+Replace `your-slack-bot-token` and `your-slack-signing-secret` with the actual values you obtained in the previous step.
 
 
 ### 4. GitHub Integration
@@ -155,22 +155,22 @@ export GITHUB_INSTALLATION_ID=your-github-installation-id
 ```
 
 > [!NOTE]
-> We use environment variables here to inject our configuration from GitHub Actions variables. If it is not convenient for you, you can just hard-code the values to [`bin/cdk.ts`](cdk/bin/cdk.ts`).
+> We use environment variables here to inject configuration from GitHub Actions variables. If this isn't convenient for you, you can simply hard-code the values in [`bin/cdk.ts`](cdk/bin/cdk.ts).
 
 #### (optional) Restrict access to the system from the Slack
 
-When you want to control which members in the Slack workspace can access the agents, you can pass a comma-separated list of Slack User IDs as the below environment variable.
+To control which members in the Slack workspace can access the agents, you can provide a comma-separated list of Slack User IDs in the following environment variable:
 
-To get a member's Slack user ID, [follow this instructions](https://www.google.com/search?q=copy+member+id+slack).
+To get a member's Slack user ID, [follow these instructions](https://www.google.com/search?q=copy+member+id+slack).
 
 ```sh
 export ADMIN_USER_ID_LIST=U123ABC456,U789XYZ012
 ```
 
-Then all the users except the specified user IDs will see a Unauthorized error when they try to access the Slack app.
+All users except those with specified user IDs will receive an Unauthorized error when attempting to access the Slack app.
 
 > [!NOTE]
-> When you want to allow a user to access the app, you can mention the app with `approve_user` message and then following mention to the users. e.g. `@remote-swe approve_user @Alice @Bob @Carol`
+> To grant a user access to the app, mention the app with an `approve_user` message followed by mentions of the users, e.g., `@remote-swe approve_user @Alice @Bob @Carol`
 
 ### 6. Deploy CDK again with configuration variables
 
@@ -181,7 +181,7 @@ cd cdk
 npx cdk deploy
 ```
 
-Then you can access all the features from Slack. Mention the Slack app, and start assign any tasks to the agents!
+You can now access all features from Slack. Simply mention the Slack app and start assigning tasks to the agents!
 
 ## How it works
 
@@ -231,7 +231,7 @@ Here we assume you request 100 sessions per month. The monthly cost is proportio
 | Bedrock | Output: Sonnet 3.7 20k tokens/session | 30.00 |
 | TOTAL | | 171.73 |
 
-Also, as long as you do not use the system (i.e. not sending any messages to the agents), the incurring costs are minimal (~0 USD).
+Additionally, when the system is not in use (i.e., no messages are sent to the agents), the ongoing costs are minimal (~0 USD).
 
 ## Clean up
 You can clean up all the resources you created by the following commands:
