@@ -31,7 +31,7 @@ Please carefully follow all the steps below. If you encounter any issues, we're 
 ### 1. Clone the Repository
 
 ```bash
-git clone [repository-url]
+git clone https://github.com/aws-samples/sample-remote-swe-agents.git
 cd sample-remote-swe-agents
 ```
 
@@ -59,7 +59,6 @@ aws ssm put-parameter \
 Then you can run cdk deploy. Note that the above parameter names are referenced in `bin/cdk.ts`.
 
 ```bash
-npm ci
 cd cdk && npm ci
 npx cdk bootstrap
 npx cdk deploy
@@ -88,6 +87,8 @@ Now, you need to set up a Slack App to control agents through the Slack interfac
 
 #### Create SSM Parameters for Slack Secrets
 
+After creating a Slack app, register the secrets in your AWS account by the following command:
+
 ```bash
 aws ssm put-parameter \
     --name /remote-swe/slack/bot-token \
@@ -100,12 +101,12 @@ aws ssm put-parameter \
     --type String
 ```
 
-Replace `your-slack-bot-token` and `your-slack-signing-secret` with the actual values you obtained in the previous step.
+Replace `your-slack-bot-token` and `your-slack-signing-secret` with the actual values you obtained in the previous step. The parameters will be referenced from CDK.
 
 
 ### 4. GitHub Integration
 
-You have two options for GitHub integration:
+To interact with GitHub, you need to setup GitHub integration. You have two options for GitHub integration:
 
 #### Option 1: Personal Access Token (PAT)
 
