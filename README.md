@@ -184,6 +184,37 @@ npx cdk deploy
 
 You can now access all features from Slack. Simply mention the Slack app and start assigning tasks to the agents!
 
+## Useful Tips
+
+### Prompting Best Practices
+
+When you start an agent, your instruction should include at least the below content:
+
+1. Which GitHib repository should they see
+2. Describe the feature or bug you want to solve
+3. What file should they check first (file path would be the best, but only keywords can also work)
+
+To simplify the workflow, you can create a GitHub issue in the repository containing the information above, and just give the agent its URL.
+This way the repository is automatically inferred from the URL, and it can also link the new PR to the corresponding issue.
+
+### Integrating with MCP Servers
+
+As our agent can work as an MCP client, you can easily integrate it with various MCP servers. To configure the integration, you can edit [`claude_desktop_config.json`](./worker/claude_desktop_config.json) and run CDK deploy. For example,
+
+```json
+  "mcpServers": {
+    "awslabs.cdk-mcp-server": {
+      "command": "uvx",
+      "args": ["awslabs.cdk-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    }
+  }
+```
+
+All the new agents can now use MCP servers as their tools.
+
 ## How it works
 
 This system utilizes a Slack Bolt application to manage user interactions and implement a scalable worker system. Here's the main workflow:
