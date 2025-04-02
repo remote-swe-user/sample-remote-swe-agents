@@ -161,13 +161,12 @@ Users will primarily request software engineering assistance including bug fixes
     const items = [...initialItems, ...appendedItems];
     const { totalTokenCount, messages } = await noOpFiltering(items);
     secondCachePoint = messages.length - 1;
-    [firstCachePoint, secondCachePoint].forEach((cp) => {
+    [...new Set([firstCachePoint, secondCachePoint])].forEach((cp) => {
       const message = messages[cp];
       if (message?.content) {
         message.content = [...message.content, { cachePoint: { type: 'default' } }];
       }
     });
-    console.log(JSON.stringify(messages));
     firstCachePoint = secondCachePoint;
 
     const res = await pRetry(
