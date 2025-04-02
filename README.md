@@ -25,6 +25,7 @@ Please carefully follow all the steps below. If you encounter any issues, we're 
 - npm (version 9 or higher)
 - AWS CLI
 - AWS IAM profile with appropriate permissions
+- Bedrock Claude Sonnet 3.7 model is [enabled on](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access) US region
 - Slack Workspace
 - GitHub Account
 
@@ -81,6 +82,8 @@ Now, you need to set up a Slack App to control agents through the Slack interfac
    - Signing Secret (found in Basic Information)
    - Bot Token (found in OAuth & Permissions, after installing to your workspace)
 
+Please also refer to this document for more details: [Create and configure apps with manifests](https://api.slack.com/reference/manifests)
+
 > [!NOTE]
 > If you're using a shared (rather than personal) Slack workspace, consider setting the `ADMIN_USER_ID_LIST` environment variable (see below) to control agent access. Without this restriction, anyone in the workspace can access the agents and potentially your GitHub content.
 
@@ -111,9 +114,10 @@ To interact with GitHub, you need to setup GitHub integration. You have two opti
 #### Option 1: Personal Access Token (PAT)
 
 1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
-2. Generate a new token with appropriate repository access
-   * Required scopes: `admin:read, repo, workflow`
-3. Create SSM Parameter
+2. Generate a new token (classic) with appropriate repository access
+   * Required scopes: `read:org, repo, workflow`
+   * The more scopes you permit, the more various tasks agents can perform
+3. Create an SSM Parameter with the generated token string
    ```bash
    aws ssm put-parameter \
       --name /remote-swe/github/personal-access-token \
