@@ -217,20 +217,20 @@ const ensureImagesDirectory = () => {
 // Save image to local filesystem and return the path
 const saveImageToLocalFs = async (imageBuffer: Buffer): Promise<string> => {
   const imagesDir = ensureImagesDirectory();
-  
+
   // Since we're converting to webp above, we know the extension
   const extension = 'webp';
-  
+
   // Create path with sequence number
   const fileName = `image${imageSeqNo}.${extension}`;
   const filePath = path.join(imagesDir, fileName);
-  
+
   // Write image to file
   writeFileSync(filePath, imageBuffer);
-  
+
   // Increment sequence number for next image
   imageSeqNo++;
-  
+
   // Return the path in the format specified in the issue
   return `.remote_swe_workspace/images/${fileName}`;
 };
@@ -244,11 +244,11 @@ const postProcessMessageContent = async (content: string) => {
       resultArray.push(c);
       continue;
     }
-    
+
     // Process image
     const s3Key = c.image.source.s3Key;
     let imageBuffer: Buffer;
-    
+
     if (s3Key in imageCache) {
       imageBuffer = imageCache[s3Key];
     } else {
@@ -257,7 +257,7 @@ const postProcessMessageContent = async (content: string) => {
       imageBuffer = await sharp(file).webp({ lossless: false, quality: 80 }).toBuffer();
       imageCache[s3Key] = imageBuffer;
     }
-    
+
     // Add image to result
     resultArray.push({
       image: {
@@ -267,10 +267,10 @@ const postProcessMessageContent = async (content: string) => {
         },
       },
     });
-    
+
     // Save image to local filesystem
     const localPath = await saveImageToLocalFs(imageBuffer);
-    
+
     // Add a text block after the image with the path information
     resultArray.push({
       text: `the image is stored locally on ${localPath}`,
