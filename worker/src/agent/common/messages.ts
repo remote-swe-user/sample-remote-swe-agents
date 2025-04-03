@@ -3,6 +3,9 @@ import { PutCommand, UpdateCommand, paginateQuery, TransactWriteCommand } from '
 import { getBytesFromKey } from './s3';
 import sharp from 'sharp';
 import { ddb, TableName } from './ddb';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import path from 'path';
+import { fileTypeFromBuffer } from 'file-type';
 
 // Maximum input token count before applying middle-out strategy
 export const MAX_INPUT_TOKEN = 80_000;
@@ -199,29 +202,80 @@ const preProcessMessageContent = async (content: Message['content']) => {
 };
 
 const imageCache: Record<string, Buffer> = {};
+// Image sequence number, reset when the process is killed
+let imageSeqNo = 0;
+
+// Ensure the images directory exists
+const ensureImagesDirectory = () => {
+  const imagesDir = path.join(process.env.HOME || '', '.remote_swe_workspace', 'images');
+  if (!existsSync(imagesDir)) {
+    mkdirSync(imagesDir, { recursive: true });
+  }
+  return imagesDir;
+};
+
+// Save image to local filesystem and return the path
+const saveImageToLocalFs = async (imageBuffer: Buffer): Promise<string> => {
+  const imagesDir = ensureImagesDirectory();
+  
+  // Since we're converting to webp above, we know the extension
+  const extension = 'webp';
+  
+  // Create path with sequence number
+  const fileName = `image${imageSeqNo}.${extension}`;
+  const filePath = path.join(imagesDir, fileName);
+  
+  // Write image to file
+  writeFileSync(filePath, imageBuffer);
+  
+  // Increment sequence number for next image
+  imageSeqNo++;
+  
+  // Return the path in the format specified in the issue
+  return `.remote_swe_workspace/images/${fileName}`;
+};
+
 const postProcessMessageContent = async (content: string) => {
-  return await Promise.all(
-    JSON.parse(content).map(async (c: any) => {
-      if (!('image' in c)) return c;
-      // embed images
-      const s3Key = c.image.source.s3Key;
-      let webp: Buffer;
-      if (s3Key in imageCache) {
-        webp = imageCache[s3Key];
-      } else {
-        const file = await getBytesFromKey(s3Key);
-        // using sharp, convert file to webp
-        webp = await sharp(file).webp({ lossless: false, quality: 80 }).toBuffer();
-        imageCache[s3Key] = webp;
-      }
-      return {
-        image: {
-          format: 'webp',
-          source: {
-            bytes: webp,
-          },
+  const contentArray = JSON.parse(content);
+  const resultArray = [];
+
+  for (const c of contentArray) {
+    if (!('image' in c)) {
+      resultArray.push(c);
+      continue;
+    }
+    
+    // Process image
+    const s3Key = c.image.source.s3Key;
+    let imageBuffer: Buffer;
+    
+    if (s3Key in imageCache) {
+      imageBuffer = imageCache[s3Key];
+    } else {
+      const file = await getBytesFromKey(s3Key);
+      // Convert file to webp
+      imageBuffer = await sharp(file).webp({ lossless: false, quality: 80 }).toBuffer();
+      imageCache[s3Key] = imageBuffer;
+    }
+    
+    // Add image to result
+    resultArray.push({
+      image: {
+        format: 'webp',
+        source: {
+          bytes: imageBuffer,
         },
-      };
-    })
-  );
+      },
+    });
+    
+    // Save image to local filesystem
+    const localPath = await saveImageToLocalFs(imageBuffer);
+    
+    // Add a text block after the image with the path information
+    resultArray.push({
+      text: `the image is stored locally on ${localPath}`,
+    });
+  }
+
+  return resultArray;
 };
