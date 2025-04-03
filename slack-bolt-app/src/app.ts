@@ -10,6 +10,7 @@ import * as os from 'os';
 import { Message } from '@aws-sdk/client-bedrock-runtime';
 import { s3, BucketName } from './common/s3';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { IdempotencyAlreadyInProgressError } from '@aws-lambda-powertools/idempotency';
 
 const SigningSecret = process.env.SIGNING_SECRET!;
 const BotToken = process.env.BOT_TOKEN!;
@@ -291,6 +292,7 @@ app.event('app_mention', async ({ event, client, logger }) => {
   } catch (e: any) {
     console.log(e);
     if (e.message.includes('already_reacted')) return;
+    if (e instanceof IdempotencyAlreadyInProgressError) return;
 
     await client.chat.postMessage({
       channel,

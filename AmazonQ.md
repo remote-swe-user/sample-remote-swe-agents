@@ -24,6 +24,7 @@ This project consists of the following main components:
 - Use Promise-based patterns for asynchronous operations
 - Use Prettier for code formatting
 - Prefer function-based implementations over classes
+- DO NOT write code comment unless the implementation is so complicated or difficult to understand without comments.
 
 ## Commonly Used Commands
 

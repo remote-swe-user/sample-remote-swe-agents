@@ -3,6 +3,9 @@ import { PutCommand, UpdateCommand, paginateQuery, TransactWriteCommand } from '
 import { getBytesFromKey } from './s3';
 import sharp from 'sharp';
 import { ddb, TableName } from './ddb';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import path from 'path';
+import { tmpdir } from 'os';
 
 // Maximum input token count before applying middle-out strategy
 export const MAX_INPUT_TOKEN = 80_000;
@@ -198,30 +201,73 @@ const preProcessMessageContent = async (content: Message['content']) => {
   return JSON.stringify(content);
 };
 
-const imageCache: Record<string, Buffer> = {};
+const imageCache: Record<string, { data: Buffer; localPath: string }> = {};
+let imageSeqNo = 0;
+
+const ensureImagesDirectory = () => {
+  const imagesDir = path.join(tmpdir(), `.remote-swe-images`);
+  if (!existsSync(imagesDir)) {
+    mkdirSync(imagesDir, { recursive: true });
+  }
+  return imagesDir;
+};
+
+const saveImageToLocalFs = async (imageBuffer: Buffer): Promise<string> => {
+  const imagesDir = ensureImagesDirectory();
+
+  // Since we're converting to webp above, we know the extension
+  const extension = 'webp';
+
+  // Create path with sequence number
+  const fileName = `image${imageSeqNo}.${extension}`;
+  const filePath = path.join(imagesDir, fileName);
+
+  // Write image to file
+  writeFileSync(filePath, imageBuffer);
+
+  // Increment sequence number for next image
+  imageSeqNo++;
+
+  // Return the path in the format specified in the issue
+  return filePath;
+};
+
 const postProcessMessageContent = async (content: string) => {
-  return await Promise.all(
-    JSON.parse(content).map(async (c: any) => {
-      if (!('image' in c)) return c;
-      // embed images
-      const s3Key = c.image.source.s3Key;
-      let webp: Buffer;
-      if (s3Key in imageCache) {
-        webp = imageCache[s3Key];
-      } else {
-        const file = await getBytesFromKey(s3Key);
-        // using sharp, convert file to webp
-        webp = await sharp(file).webp({ lossless: false, quality: 80 }).toBuffer();
-        imageCache[s3Key] = webp;
-      }
-      return {
-        image: {
-          format: 'webp',
-          source: {
-            bytes: webp,
-          },
+  const contentArray = JSON.parse(content);
+  const flattenedArray = [];
+
+  for (const c of contentArray) {
+    if (!('image' in c)) {
+      flattenedArray.push(c);
+      continue;
+    }
+
+    const s3Key = c.image.source.s3Key;
+    let imageBuffer: Buffer;
+    let localPath: string;
+
+    if (s3Key in imageCache) {
+      imageBuffer = imageCache[s3Key].data;
+      localPath = imageCache[s3Key].localPath;
+    } else {
+      const file = await getBytesFromKey(s3Key);
+      imageBuffer = await sharp(file).webp({ lossless: false, quality: 80 }).toBuffer();
+      localPath = await saveImageToLocalFs(imageBuffer);
+      imageCache[s3Key] = { data: imageBuffer, localPath };
+    }
+
+    flattenedArray.push({
+      image: {
+        format: 'webp',
+        source: {
+          bytes: imageBuffer,
         },
-      };
-    })
-  );
+      },
+    });
+    flattenedArray.push({
+      text: `the image is stored locally on ${localPath}`,
+    });
+  }
+
+  return flattenedArray;
 };
