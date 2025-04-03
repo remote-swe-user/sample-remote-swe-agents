@@ -5,7 +5,6 @@ import sharp from 'sharp';
 import { ddb, TableName } from './ddb';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
-import { fileTypeFromBuffer } from 'file-type';
 
 // Maximum input token count before applying middle-out strategy
 export const MAX_INPUT_TOKEN = 80_000;
@@ -201,7 +200,7 @@ const preProcessMessageContent = async (content: Message['content']) => {
   return JSON.stringify(content);
 };
 
-const imageCache: Record<string, Buffer> = {};
+const imageCache: Record<string, { data: Buffer; localPath: string }> = {};
 // Image sequence number, reset when the process is killed
 let imageSeqNo = 0;
 
