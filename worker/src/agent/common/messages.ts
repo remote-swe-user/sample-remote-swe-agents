@@ -236,29 +236,37 @@ const saveImageToLocalFs = async (imageBuffer: Buffer): Promise<string> => {
 
 const postProcessMessageContent = async (content: string) => {
   const contentArray = JSON.parse(content);
-  const resultArray = [];
+  const flattenedArray = [];
 
   for (const c of contentArray) {
     if (!('image' in c)) {
-      resultArray.push(c);
+      flattenedArray.push(c);
       continue;
     }
 
     // Process image
     const s3Key = c.image.source.s3Key;
     let imageBuffer: Buffer;
+    let localPath: string;
 
     if (s3Key in imageCache) {
-      imageBuffer = imageCache[s3Key];
+      // Use cached image data and path
+      imageBuffer = imageCache[s3Key].data;
+      localPath = imageCache[s3Key].localPath;
     } else {
       const file = await getBytesFromKey(s3Key);
       // Convert file to webp
       imageBuffer = await sharp(file).webp({ lossless: false, quality: 80 }).toBuffer();
-      imageCache[s3Key] = imageBuffer;
+
+      // Save image to local filesystem
+      localPath = await saveImageToLocalFs(imageBuffer);
+
+      // Cache both the image buffer and local path
+      imageCache[s3Key] = { data: imageBuffer, localPath };
     }
 
     // Add image to result
-    resultArray.push({
+    flattenedArray.push({
       image: {
         format: 'webp',
         source: {
@@ -267,14 +275,11 @@ const postProcessMessageContent = async (content: string) => {
       },
     });
 
-    // Save image to local filesystem
-    const localPath = await saveImageToLocalFs(imageBuffer);
-
     // Add a text block after the image with the path information
-    resultArray.push({
+    flattenedArray.push({
       text: `the image is stored locally on ${localPath}`,
     });
   }
 
-  return resultArray;
+  return flattenedArray;
 };
