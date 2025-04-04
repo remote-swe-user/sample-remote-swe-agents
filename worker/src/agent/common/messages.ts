@@ -215,15 +215,16 @@ const ensureImagesDirectory = () => {
 const saveImageToLocalFs = async (imageBuffer: Buffer): Promise<string> => {
   const imagesDir = ensureImagesDirectory();
 
-  // Since we're converting to webp above, we know the extension
-  const extension = 'webp';
+  // Convert webp to jpeg for better compatibility with CLI tools
+  const jpegBuffer = await sharp(imageBuffer).jpeg({ quality: 85 }).toBuffer();
+  const extension = 'jpeg';
 
   // Create path with sequence number
   const fileName = `image${imageSeqNo}.${extension}`;
   const filePath = path.join(imagesDir, fileName);
 
   // Write image to file
-  writeFileSync(filePath, imageBuffer);
+  writeFileSync(filePath, jpegBuffer);
 
   // Increment sequence number for next image
   imageSeqNo++;
