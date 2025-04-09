@@ -25,7 +25,7 @@ Please carefully follow all the steps below. If you encounter any issues, we're 
 - npm (version 9 or higher)
 - AWS CLI
 - AWS IAM profile with appropriate permissions
-- Bedrock Claude Sonnet 3.7 model is [enabled on](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access) US region
+- Bedrock Claude Sonnet 3.7 model is [enabled on](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access) both us-east-1 and us-west-2 regions
 - Slack Workspace
 - GitHub Account
 
@@ -35,6 +35,8 @@ Please carefully follow all the steps below. If you encounter any issues, we're 
 git clone https://github.com/aws-samples/remote-swe-agents.git
 cd remote-swe-agents
 ```
+
+After completing this step, proceed to Step 2 to set up the required parameters and deploy the CDK stack.
 
 ### 2. Run CDK Deploy
 
@@ -65,7 +67,9 @@ npx cdk bootstrap
 npx cdk deploy
 ```
 
-Deployment usually takes about 5 minutes. After the deployment, you should see the endpoint of your Slack Bolt app. Please continue to the next step.
+Deployment usually takes about 5 minutes. After the deployment, you should see the endpoint of your Slack Bolt app. Make note of the `SlackBoltEndpointUrl` from the CDK output as you'll need it in the next step.
+
+After completing this step, proceed to Step 3 to set up your Slack application.
 
 ### 3. Slack App Setup
 
@@ -109,10 +113,16 @@ aws ssm put-parameter \
 
 Replace `your-slack-bot-token` and `your-slack-signing-secret` with the actual values you obtained in the previous step. The parameters will be referenced from CDK.
 
+After completing this step, proceed to Step 4 to set up GitHub integration. You will need to choose between using a Personal Access Token (PAT) or GitHub App for authentication.
+
 
 ### 4. GitHub Integration
 
 To interact with GitHub, you need to setup GitHub integration. You have two options for GitHub integration:
+
+**Which option should you choose?**
+- **Personal Access Token (Option 1)**: Choose this for personal use or quick setup. It's simpler but tied to a single user account.
+- **GitHub App (Option 2)**: Recommended for team environments or organizational use. Provides more granular permissions and isn't tied to a personal account.
 
 #### Option 1: Personal Access Token (PAT)
 
@@ -150,6 +160,8 @@ To interact with GitHub, you need to setup GitHub integration. You have two opti
 > [!NOTE]
 > Currently when using with GitHub App, you can only use repositories under a single organization (i.e. app installation).
 
+After completing this step, proceed to Step 5 to set up environment variables based on your chosen GitHub integration method.
+
 ### 5. Environment Variables Setup
 
 The following environment variables are required for deployment:
@@ -181,6 +193,8 @@ All users except those with specified user IDs will receive an Unauthorized erro
 > [!NOTE]
 > To grant a user access to the app, mention the app with an `approve_user` message followed by mentions of the users, e.g., `@remote-swe approve_user @Alice @Bob @Carol`
 
+After completing this step, proceed to Step 6 to finalize the deployment with your configuration.
+
 ### 6. Deploy CDK again with configuration variables
 
 After the above setup is complete, run `cdk deploy` again.
@@ -190,7 +204,9 @@ cd cdk
 npx cdk deploy
 ```
 
-You can now access all features from Slack. Simply mention the Slack app and start assigning tasks to the agents!
+Congratulations! Setup is now complete. You can now access all features from Slack. Simply mention the Slack app and start assigning tasks to the agents!
+
+For tips on how to effectively use the agents, refer to the "Useful Tips" section below.
 
 ## Useful Tips
 
