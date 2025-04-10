@@ -1,16 +1,13 @@
 import { ToolDefinition, zodToJsonSchemaBody } from '../../common/lib';
 import { z } from 'zod';
 import { executeCommand } from '../command-execution';
-import { authorizeGitHubCli } from '../command-execution/github';
 
-// Get PR comments schema
 const getPRCommentsSchema = z.object({
   owner: z.string().describe('GitHub repository owner'),
   repo: z.string().describe('GitHub repository name'),
   pullRequestId: z.string().describe('The sequential number of the pull request issued from GitHub'),
 });
 
-// Reply to PR comment schema
 const replyPRCommentSchema = z.object({
   owner: z.string().describe('GitHub repository owner'),
   repo: z.string().describe('GitHub repository name'),
@@ -19,7 +16,6 @@ const replyPRCommentSchema = z.object({
   body: z.string().describe('The text of the reply comment'),
 });
 
-// Handler for getting PR comments
 const getPRCommentsHandler = async (input: z.infer<typeof getPRCommentsSchema>) => {
   const { owner, repo, pullRequestId } = input;
 
@@ -43,12 +39,8 @@ const getPRCommentsHandler = async (input: z.infer<typeof getPRCommentsSchema>) 
   }
 };
 
-// Handler for replying to PR comments
 const replyPRCommentHandler = async (input: z.infer<typeof replyPRCommentSchema>) => {
   const { owner, repo, pullRequestId, commentId, body } = input;
-
-  // Ensure GitHub CLI is authenticated
-  await authorizeGitHubCli();
 
   try {
     // Use GitHub CLI to reply to a comment
@@ -94,7 +86,7 @@ export const replyPRCommentTool: ToolDefinition<z.infer<typeof replyPRCommentSch
 };
 
 // Test script code - only runs when file is executed directly
-if (require.main === module) {
+if (require.main === module && false) {
   const args = process.argv.slice(2);
   const command = args[0]?.toLowerCase();
 
