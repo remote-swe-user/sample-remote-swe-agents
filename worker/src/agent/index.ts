@@ -25,6 +25,7 @@ import { bedrockConverse } from './common/bedrock';
 import { cloneRepositoryTool } from './tools/repo';
 import { getMcpToolSpecs, tryExecuteMcpTool } from './mcp';
 import { sendImageTool } from './tools/send-image';
+import { getPRCommentsTool, replyPRCommentTool } from './tools/github-pr-comments';
 import { readMetadata } from './common/metadata';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
@@ -152,6 +153,8 @@ Users will primarily request software engineering assistance including bug fixes
     fileEditTool,
     webBrowserTool,
     sendImageTool,
+    getPRCommentsTool,
+    replyPRCommentTool,
   ];
   const toolConfig: ConverseCommandInput['toolConfig'] = {
     tools: [
