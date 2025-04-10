@@ -25,6 +25,7 @@ import { bedrockConverse } from './common/bedrock';
 import { cloneRepositoryTool } from './tools/repo';
 import { getMcpToolSpecs, tryExecuteMcpTool } from './mcp';
 import { sendImageTool } from './tools/send-image';
+import { getPRComments, replyPRComment, schemas as githubPRCommentsSchemas } from './tools/github-pr-comments';
 import { readMetadata } from './common/metadata';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
@@ -150,6 +151,36 @@ Users will primarily request software engineering assistance including bug fixes
     fileEditTool,
     webBrowserTool,
     sendImageTool,
+    {
+      name: 'getGitHubActionsLatestResult',
+      handler: ciTool.handler,
+      schema: ciTool.schema,
+      toolSpec: ciTool.toolSpec,
+    },
+    {
+      name: 'getPRComments',
+      handler: getPRComments,
+      schema: githubPRCommentsSchemas.getPRComments,
+      toolSpec: async () => {
+        return {
+          name: 'getPRComments',
+          description:
+            'Wait for the GitHub Actions workflow to complete and get its status and logs for a specific PR.\nIMPORTANT: You should always use this tool after pushing a commit to pull requests unless user requested otherwise.',
+        };
+      },
+    },
+    {
+      name: 'replyPRComment',
+      handler: replyPRComment,
+      schema: githubPRCommentsSchemas.replyPRComment,
+      toolSpec: async () => {
+        return {
+          name: 'replyPRComment',
+          description:
+            'Reply to a specific comment in a GitHub pull request.',
+        };
+      },
+    },
   ];
   const toolConfig: ConverseCommandInput['toolConfig'] = {
     tools: [
