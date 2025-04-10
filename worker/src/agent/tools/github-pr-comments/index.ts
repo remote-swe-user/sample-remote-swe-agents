@@ -92,3 +92,75 @@ export const replyPRCommentTool: ToolDefinition<z.infer<typeof replyPRCommentSch
     },
   }),
 };
+
+// Test script code - only runs when file is executed directly
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const command = args[0]?.toLowerCase();
+
+  const printUsage = () => {
+    console.log('Usage:');
+    console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts get <owner> <repo> <pullRequestId>');
+    console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts reply <owner> <repo> <pullRequestId> <commentId> <body>');
+    console.log('\nExamples:');
+    console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts get aws-samples remote-swe-agents 32');
+    console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts reply aws-samples remote-swe-agents 32 1234567890 "Thanks for the feedback!"');
+  };
+
+  const runTest = async () => {
+    try {
+      switch (command) {
+        case 'get':
+          if (args.length < 4) {
+            console.error('Error: Not enough arguments for get command');
+            printUsage();
+            process.exit(1);
+          }
+
+          const [owner, repo, pullRequestId] = args.slice(1);
+          console.log(`Getting comments for PR #${pullRequestId} in ${owner}/${repo}...`);
+          
+          const getResult = await getPRCommentsHandler({ owner, repo, pullRequestId });
+          console.log('Result:');
+          console.log(getResult);
+          break;
+
+        case 'reply':
+          if (args.length < 6) {
+            console.error('Error: Not enough arguments for reply command');
+            printUsage();
+            process.exit(1);
+          }
+
+          const [replyOwner, replyRepo, replyPullRequestId, commentId, ...bodyParts] = args.slice(1);
+          const body = bodyParts.join(' ');
+          
+          console.log(`Replying to comment ${commentId} in PR #${replyPullRequestId} of ${replyOwner}/${replyRepo}...`);
+          console.log(`Message: "${body}"`);
+          
+          const replyResult = await replyPRCommentHandler({
+            owner: replyOwner,
+            repo: replyRepo,
+            pullRequestId: replyPullRequestId,
+            commentId,
+            body
+          });
+          
+          console.log('Result:');
+          console.log(replyResult);
+          break;
+
+        default:
+          console.error('Error: Unknown command. Use "get" or "reply"');
+          printUsage();
+          process.exit(1);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      process.exit(1);
+    }
+  };
+
+  // Run the test
+  runTest();
+}
