@@ -151,12 +151,6 @@ Users will primarily request software engineering assistance including bug fixes
     fileEditTool,
     webBrowserTool,
     sendImageTool,
-    {
-      name: 'getGitHubActionsLatestResult',
-      handler: ciTool.handler,
-      schema: ciTool.schema,
-      toolSpec: ciTool.toolSpec,
-    },
     getPRCommentsTool,
     replyPRCommentTool,
   ];
