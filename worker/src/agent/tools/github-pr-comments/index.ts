@@ -101,10 +101,14 @@ if (require.main === module) {
   const printUsage = () => {
     console.log('Usage:');
     console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts get <owner> <repo> <pullRequestId>');
-    console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts reply <owner> <repo> <pullRequestId> <commentId> <body>');
+    console.log(
+      '  npx tsx worker/src/agent/tools/github-pr-comments/index.ts reply <owner> <repo> <pullRequestId> <commentId> <body>'
+    );
     console.log('\nExamples:');
     console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts get aws-samples remote-swe-agents 32');
-    console.log('  npx tsx worker/src/agent/tools/github-pr-comments/index.ts reply aws-samples remote-swe-agents 32 1234567890 "Thanks for the feedback!"');
+    console.log(
+      '  npx tsx worker/src/agent/tools/github-pr-comments/index.ts reply aws-samples remote-swe-agents 32 1234567890 "Thanks for the feedback!"'
+    );
   };
 
   const runTest = async () => {
@@ -119,7 +123,7 @@ if (require.main === module) {
 
           const [owner, repo, pullRequestId] = args.slice(1);
           console.log(`Getting comments for PR #${pullRequestId} in ${owner}/${repo}...`);
-          
+
           const getResult = await getPRCommentsHandler({ owner, repo, pullRequestId });
           console.log('Result:');
           console.log(getResult);
@@ -134,18 +138,18 @@ if (require.main === module) {
 
           const [replyOwner, replyRepo, replyPullRequestId, commentId, ...bodyParts] = args.slice(1);
           const body = bodyParts.join(' ');
-          
+
           console.log(`Replying to comment ${commentId} in PR #${replyPullRequestId} of ${replyOwner}/${replyRepo}...`);
           console.log(`Message: "${body}"`);
-          
+
           const replyResult = await replyPRCommentHandler({
             owner: replyOwner,
             repo: replyRepo,
             pullRequestId: replyPullRequestId,
             commentId,
-            body
+            body,
           });
-          
+
           console.log('Result:');
           console.log(replyResult);
           break;
