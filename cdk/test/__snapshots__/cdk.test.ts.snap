@@ -22,22 +22,6 @@ exports[`Snapshot test 1`] = `
         "Ref": "StorageHistory251A3AE8",
       },
     },
-    "WorkerBusEventEndpointCC51309B": {
-      "Value": {
-        "Fn::Join": [
-          "",
-          [
-            "https://",
-            {
-              "Fn::GetAtt": [
-                "WorkerBusApi8460ABC0",
-                "Dns.Http",
-              ],
-            },
-          ],
-        ],
-      },
-    },
   },
   "Parameters": {
     "BootstrapVersion": {

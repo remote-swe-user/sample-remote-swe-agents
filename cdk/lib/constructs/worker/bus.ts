@@ -32,7 +32,5 @@ export class WorkerBus extends Construct {
 
     this.httpEndpoint = `https://${api.httpDns}`;
     this.api = api;
-
-    new CfnOutput(this, 'EventEndpoint', { value: this.httpEndpoint });
   }
 }
