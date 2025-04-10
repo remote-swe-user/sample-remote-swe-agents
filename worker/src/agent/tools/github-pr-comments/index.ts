@@ -1,15 +1,16 @@
-import z from 'zod';
-import { Octokit } from '@octokit/rest';
+import { ToolDefinition, zodToJsonSchemaBody } from '../../common/lib';
+import { z } from 'zod';
+import { executeCommand } from '../command-execution';
 import { authorizeGitHubCli } from '../command-execution/github';
 
+// Get PR comments schema
 const getPRCommentsSchema = z.object({
   owner: z.string().describe('GitHub repository owner'),
   repo: z.string().describe('GitHub repository name'),
   pullRequestId: z.string().describe('The sequential number of the pull request issued from GitHub'),
 });
 
-type GetPRCommentsParams = z.infer<typeof getPRCommentsSchema>;
-
+// Reply to PR comment schema
 const replyPRCommentSchema = z.object({
   owner: z.string().describe('GitHub repository owner'),
   repo: z.string().describe('GitHub repository name'),
@@ -18,93 +19,76 @@ const replyPRCommentSchema = z.object({
   body: z.string().describe('The text of the reply comment'),
 });
 
-type ReplyPRCommentParams = z.infer<typeof replyPRCommentSchema>;
-
-/**
- * Gets the review comments for a specific pull request
- */
-export const getPRComments = async (params: GetPRCommentsParams) => {
-  const { owner, repo, pullRequestId } = params;
-
-  // Get GitHub token
-  const token = await authorizeGitHubCli();
-
-  // Initialize Octokit
-  const octokit = new Octokit({
-    auth: token,
-  });
+// Handler for getting PR comments
+const getPRCommentsHandler = async (input: z.infer<typeof getPRCommentsSchema>) => {
+  const { owner, repo, pullRequestId } = input;
 
   try {
-    // Get PR review comments
-    const { data: comments } = await octokit.pulls.listReviewComments({
-      owner,
-      repo,
-      pull_number: parseInt(pullRequestId, 10),
-    });
+    // Use GitHub CLI to get PR comments
+    const result = await executeCommand(
+      `gh api repos/${owner}/${repo}/pulls/${pullRequestId}/comments --jq '.[] | {id: .id, user: .user.login, body: .body, path: .path, position: .position, created_at: .created_at, html_url: .html_url}'`
+    );
 
-    // Format the comments for better readability
-    const formattedComments = comments.map((comment) => ({
-      id: comment.id.toString(),
-      user: comment.user?.login || 'Unknown',
-      body: comment.body || '',
-      path: comment.path,
-      position: comment.position,
-      createdAt: comment.created_at,
-      url: comment.html_url,
-    }));
+    if (result.error) {
+      return `Failed to get PR comments: ${result.error}`;
+    }
 
-    return {
-      success: true,
-      comments: formattedComments,
-    };
+    if (!result.stdout.trim()) {
+      return 'No review comments found for this PR.';
+    }
+
+    return result.stdout;
   } catch (error: any) {
-    return {
-      success: false,
-      error: `Failed to get PR comments: ${error.message}`,
-    };
+    return `Error retrieving PR comments: ${error.message}`;
   }
 };
 
-/**
- * Replies to a specific pull request review comment
- */
-export const replyPRComment = async (params: ReplyPRCommentParams) => {
-  const { owner, repo, commentId, body } = params;
+// Handler for replying to PR comments
+const replyPRCommentHandler = async (input: z.infer<typeof replyPRCommentSchema>) => {
+  const { owner, repo, pullRequestId, commentId, body } = input;
 
-  // Get GitHub token
-  const token = await authorizeGitHubCli();
-
-  // Initialize Octokit
-  const octokit = new Octokit({
-    auth: token,
-  });
+  // Ensure GitHub CLI is authenticated
+  await authorizeGitHubCli();
 
   try {
-    // Reply to the comment
-    const { data } = await octokit.pulls.createReplyForReviewComment({
-      owner,
-      repo,
-      comment_id: parseInt(commentId, 10),
-      body,
-    });
+    // Use GitHub CLI to reply to a comment
+    const result = await executeCommand(
+      `gh api --method POST repos/${owner}/${repo}/pulls/${pullRequestId}/comments/${commentId}/replies -f body="${body}"`
+    );
 
-    return {
-      success: true,
-      reply: {
-        id: data.id.toString(),
-        url: data.html_url,
-      },
-    };
+    if (result.error) {
+      return `Failed to reply to comment: ${result.error}`;
+    }
+
+    return `Successfully replied to comment ${commentId}`;
   } catch (error: any) {
-    return {
-      success: false,
-      error: `Failed to reply to comment: ${error.message}`,
-    };
+    return `Error replying to comment: ${error.message}`;
   }
 };
 
-// Export schemas for the agent to use
-export const schemas = {
-  getPRComments: getPRCommentsSchema,
-  replyPRComment: replyPRCommentSchema,
+// Tool definitions
+export const getPRCommentsTool: ToolDefinition<z.infer<typeof getPRCommentsSchema>> = {
+  name: 'getPRComments',
+  handler: getPRCommentsHandler,
+  schema: getPRCommentsSchema,
+  toolSpec: async () => ({
+    name: 'getPRComments',
+    description: 'Get review comments for a specific GitHub PR.',
+    inputSchema: {
+      json: zodToJsonSchemaBody(getPRCommentsSchema),
+    },
+  }),
+};
+
+export const replyPRCommentTool: ToolDefinition<z.infer<typeof replyPRCommentSchema>> = {
+  name: 'replyPRComment',
+  handler: replyPRCommentHandler,
+  schema: replyPRCommentSchema,
+  toolSpec: async () => ({
+    name: 'replyPRComment',
+    description: 'Reply to a specific comment in a GitHub pull request.',
+    inputSchema: {
+      json: zodToJsonSchemaBody(replyPRCommentSchema),
+    },
+  }),
 };
