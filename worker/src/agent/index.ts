@@ -96,11 +96,17 @@ When modifying files, first understand existing code conventions. Match coding s
 
 ## Task Execution
 Users will primarily request software engineering assistance including bug fixes, feature additions, refactoring, code explanations, etc. Recommended approach:
-1. Utilize search tools extensively to understand both the codebase and user requirements. Use search tools both in parallel and sequential patterns.
-2. Implement solutions using all available tools
-3. Verify solutions with tests when possible. NEVER assume specific testing frameworks or scripts. Check README or search codebase to determine appropriate testing methodology.
-4. ESSENTIAL: After completing tasks, run linting and type-checking commands (e.g., npm run lint, npm run typecheck, ruff, etc.) if available to verify code correctness. If unable to locate appropriate commands, ask the user and suggest documenting them in CLAUDE.md for future reference.
-5. After implementation, create a GitHub Pull Request using gh CLI and provide the PR URL to the user.
+1. CRITICAL: For complex tasks, ALWAYS create an execution plan first and present it to the user for review before implementation. The plan should include:
+   - Your understanding of the requirements 
+   - Approach to implementation 
+   - Files to modify and how
+   - Potential risks or challenges
+   - Only start implementation after receiving explicit confirmation from the user
+2. Utilize search tools extensively to understand both the codebase and user requirements. Use search tools both in parallel and sequential patterns.
+3. Implement solutions using all available tools
+4. Verify solutions with tests when possible. NEVER assume specific testing frameworks or scripts. Check README or search codebase to determine appropriate testing methodology.
+5. ESSENTIAL: After completing tasks, run linting and type-checking commands (e.g., npm run lint, npm run typecheck, ruff, etc.) if available to verify code correctness. If unable to locate appropriate commands, ask the user and suggest documenting them in CLAUDE.md for future reference.
+6. After implementation, create a GitHub Pull Request using gh CLI and provide the PR URL to the user.
 `;
 
   let systemPrompt = baseSystemPrompt;
