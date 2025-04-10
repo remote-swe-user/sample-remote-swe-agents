@@ -176,8 +176,7 @@ Users will primarily request software engineering assistance including bug fixes
       toolSpec: async () => {
         return {
           name: 'replyPRComment',
-          description:
-            'Reply to a specific comment in a GitHub pull request.',
+          description: 'Reply to a specific comment in a GitHub pull request.',
         };
       },
     },

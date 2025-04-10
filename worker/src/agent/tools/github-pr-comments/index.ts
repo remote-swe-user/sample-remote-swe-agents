@@ -25,10 +25,10 @@ type ReplyPRCommentParams = z.infer<typeof replyPRCommentSchema>;
  */
 export const getPRComments = async (params: GetPRCommentsParams) => {
   const { owner, repo, pullRequestId } = params;
-  
+
   // Get GitHub token
   const token = await authorizeGitHubCli();
-  
+
   // Initialize Octokit
   const octokit = new Octokit({
     auth: token,
@@ -70,10 +70,10 @@ export const getPRComments = async (params: GetPRCommentsParams) => {
  */
 export const replyPRComment = async (params: ReplyPRCommentParams) => {
   const { owner, repo, commentId, body } = params;
-  
+
   // Get GitHub token
   const token = await authorizeGitHubCli();
-  
+
   // Initialize Octokit
   const octokit = new Octokit({
     auth: token,
@@ -93,7 +93,7 @@ export const replyPRComment = async (params: ReplyPRCommentParams) => {
       reply: {
         id: data.id.toString(),
         url: data.html_url,
-      }
+      },
     };
   } catch (error: any) {
     return {
