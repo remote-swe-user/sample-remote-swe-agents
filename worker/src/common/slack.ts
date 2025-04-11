@@ -33,7 +33,8 @@ export const sendMessage = async (message: string, progress = false) => {
   await getApp().client.chat.postMessage({
     channel: channelID,
     thread_ts: threadTs,
-    text: message,
+    // limit to 40000 chars https://api.slack.com/methods/chat.postMessage#truncating
+    text: message.slice(0, 40000),
     blocks: [
       ...(progress
         ? [
@@ -50,7 +51,8 @@ export const sendMessage = async (message: string, progress = false) => {
         : []),
       {
         type: 'markdown',
-        text: message,
+        // limit to 12000 chars https://api.slack.com/reference/block-kit/blocks#markdown
+        text: message.slice(0, 12000),
       } as any,
     ],
   });
