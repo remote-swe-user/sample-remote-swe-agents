@@ -37,7 +37,7 @@ export const executeCommand = async (command: string, cwd?: string, timeout = 60
       timer = setTimeout(() => {
         childProcess.kill();
         resolve({
-          error: 'Command execution timed out after 60 seconds of inactivity',
+          error: `Command execution timed out after ${Math.round(timeout / 1000)} seconds of inactivity`,
           stdout: truncate(stdout, 40e3),
           stderr: truncate(stderr),
         });
@@ -45,6 +45,15 @@ export const executeCommand = async (command: string, cwd?: string, timeout = 60
     };
 
     resetTimer();
+
+    childProcess.on('error', (error) => {
+      clearTimeout(timer);
+      resolve({
+        error: `Failed to interact with the process: ${error.message}`,
+        stdout: truncate(stdout, 40e3),
+        stderr: truncate(stderr),
+      });
+    });
 
     childProcess.stdout.on('data', (data) => {
       stdout += data.toString();
@@ -127,3 +136,8 @@ Some example commands:
     },
   }),
 };
+
+// (async () => {
+//   const res = await executeCommand('foo');
+//   console.log(res);
+// })();
