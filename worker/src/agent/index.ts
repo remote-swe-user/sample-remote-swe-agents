@@ -44,7 +44,6 @@ export const onMessageReceived = async (workerId: string) => {
   );
   if (!allItems) return;
 
-  // Base system prompt
   const baseSystemPrompt = `You are an SWE agent. Help your user using your software development skill. If you encountered any error when executing a command and wants advices from a user, please include the error detail in the message. Always use the same language that user speaks. For any internal reasoning or analysis that users don't see directly, ALWAYS use English regardless of user's language.
 
 Here are some information you should know (DO NOT share this information with the user):
@@ -119,7 +118,6 @@ Users will primarily request software engineering assistance including bug fixes
 
   const tryAppendRepositoryKnowledge = async () => {
     try {
-      // Get metadata from DynamoDB
       const repo = await readMetadata('repo', workerId);
 
       // Check if metadata exists and has repository directory
@@ -165,9 +163,9 @@ Users will primarily request software engineering assistance including bug fixes
   };
 
   const { items: initialItems } = await middleOutFiltering(allItems);
-  // usually cache was created with the last assistant message, so try to get at(-2) here.
+  // usually cache was created with the last user message, so try to get at(-3) here.
   // at(-1) is usually the latest user message received, which is not cached but can also be a good cache point.
-  let firstCachePoint = initialItems.length <= 1 ? initialItems.length - 1 : initialItems.length - 2;
+  let firstCachePoint = initialItems.length > 2 ? initialItems.length - 3 : initialItems.length - 1;
   let secondCachePoint = 0;
   const appendedItems: typeof allItems = [];
 

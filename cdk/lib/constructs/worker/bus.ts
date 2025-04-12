@@ -1,6 +1,5 @@
 import { Construct } from 'constructs';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
-import { CfnOutput } from 'aws-cdk-lib';
 
 export interface WorkerBusProps {}
 
