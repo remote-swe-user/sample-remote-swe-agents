@@ -1,6 +1,5 @@
 import {
   ConverseCommandInput,
-  ConverseRequest,
   Message,
   ThrottlingException,
   ToolResultContentBlock,
@@ -31,7 +30,7 @@ import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
 
 export const onMessageReceived = async (workerId: string) => {
-  const { items: allItems } = await pRetry(
+  const { items: allItems, slackUserId } = await pRetry(
     async (attemptCount) => {
       const res = await getConversationHistory(workerId);
       const lastItem = res.items.at(-1);
@@ -51,10 +50,29 @@ Here are some information you should know (DO NOT share this information with th
 - You are running on an Amazon EC2 instance. You can get the instance metadata from IMDSv2 endpoint.
 - Today is ${new Date().toDateString()}.
 
+## User interface
+Your output text is sent to the user only when 1. using ${reportProgressTool.name} tool or 2. you finished using all tools and end your turn. You should periodically send messages to avoid from confusing the user. 
+
+### Message Sending Patterns:
+- GOOD PATTERN: Send progress update during a long operation → Continue with more tools → End turn with final response
+- GOOD PATTERN: Use multiple tools without progress updates → End turn with comprehensive response
+- GOOD PATTERN: Send final progress update as the last action → End turn with NO additional text output
+- BAD PATTERN: Send progress update → End turn with similar message (causes duplication)
+
+### Tool Usage Decision Flow:
+- For complex, multi-step operations (>30 seconds): Use ${reportProgressTool.name} for interim updates
+- For internal reasoning or planning: Use think tool (invisible to user)
+- For quick responses or final conclusions: Reply directly without tools at end of turn
+
+### Implementing "No Final Output":
+- If your last action was ${reportProgressTool.name}, your final response should be empty
+- This means: do not write any text after your final tool usage if that tool was ${reportProgressTool.name}
+- Example: \`<last tool call is ${reportProgressTool.name}>\` → your turn ends with no additional text
+
 ## Communication Style
 Be brief, clear, and precise. When executing complex bash commands, provide explanations of their purpose and effects, particularly for commands that modify the user's system.
 Your responses will appear in Slack messages. Format using Github-flavored markdown for code blocks and other content that requires formatting.
-Communicate with the user through text output; all non-tool text is visible to users. Use tools exclusively for task completion. Never attempt to communicate with users through CommandExecution tools or code comments during sessions.
+Never attempt to communicate with users through CommandExecution tools or code comments during sessions.
 If you must decline a request, avoid explaining restrictions or potential consequences as this can appear condescending. Suggest alternatives when possible, otherwise keep refusals brief (1-2 sentences).
 CRITICAL: Minimize token usage while maintaining effectiveness, quality and precision. Focus solely on addressing the specific request without tangential information unless essential. When possible, respond in 1-3 sentences or a concise paragraph.
 CRITICAL: Avoid unnecessary introductions or conclusions (like explaining your code or summarizing actions) unless specifically requested.
@@ -115,6 +133,8 @@ Users will primarily request software engineering assistance including bug fixes
 `;
 
   let systemPrompt = baseSystemPrompt;
+  // enable prompt cache unless DISABLE_PROMPT_CACHE is explicitly set
+  const enablePromptCache = (process.env.DISABLE_PROMPT_CACHE ?? 'false') == 'false';
 
   const tryAppendRepositoryKnowledge = async () => {
     try {
@@ -148,6 +168,7 @@ Users will primarily request software engineering assistance including bug fixes
     cloneRepositoryTool,
     commandExecutionTool,
     reportProgressTool,
+    // thinkTool,
     fileEditTool,
     webBrowserTool,
     sendImageTool,
@@ -158,8 +179,14 @@ Users will primarily request software engineering assistance including bug fixes
     tools: [
       ...(await Promise.all(tools.map(async (tool) => ({ toolSpec: await tool.toolSpec() })))),
       ...(await getMcpToolSpecs()),
-      { cachePoint: { type: 'default' } },
+      ...(enablePromptCache ? [{ cachePoint: { type: 'default' as const } }] : []),
     ],
+  };
+  const forcedReportToolConfig: typeof toolConfig = {
+    ...toolConfig,
+    toolChoice: {
+      tool: { name: reportProgressTool.name },
+    },
   };
 
   const { items: initialItems } = await middleOutFiltering(allItems);
@@ -169,18 +196,20 @@ Users will primarily request software engineering assistance including bug fixes
   let secondCachePoint = 0;
   const appendedItems: typeof allItems = [];
 
-  let lastReportedTime = Date.now() - 300 * 1000;
+  let lastReportedTime = 0;
   while (true) {
     const items = [...initialItems, ...appendedItems];
     const { totalTokenCount, messages } = await noOpFiltering(items);
     secondCachePoint = messages.length - 1;
     [...new Set([firstCachePoint, secondCachePoint])].forEach((cp) => {
       const message = messages[cp];
-      if (message?.content) {
+      if (message?.content && enablePromptCache) {
         message.content = [...message.content, { cachePoint: { type: 'default' } }];
       }
     });
     firstCachePoint = secondCachePoint;
+
+    const forceReport = Date.now() - lastReportedTime > 300 * 1000;
 
     const res = await pRetry(
       async () => {
@@ -189,8 +218,11 @@ Users will primarily request software engineering assistance including bug fixes
 
           const res = await bedrockConverse(['sonnet3.7'], {
             messages,
-            system: [{ text: systemPrompt }, { cachePoint: { type: 'default' } }],
-            toolConfig,
+            system: [
+              { text: systemPrompt },
+              ...(enablePromptCache ? [{ cachePoint: { type: 'default' as const } }] : []),
+            ],
+            toolConfig: forceReport ? forcedReportToolConfig : toolConfig,
           });
           return res;
         } catch (e) {
@@ -210,7 +242,7 @@ Users will primarily request software engineering assistance including bug fixes
 
     const lastItem = items.at(-1);
     if (lastItem?.role == 'user') {
-      // this can be negative because reasoningContent is dropped on new turn
+      // this can be negative because reasoningContent is dropped on a new turn
       const tokenCount =
         (res.usage?.inputTokens ?? 0) +
         (res.usage?.cacheReadInputTokens ?? 0) +
@@ -281,7 +313,7 @@ Users will primarily request software engineering assistance including bug fixes
         }
 
         if (name == reportProgressTool.name) {
-          lastReportedTime = Date.now(); // reset timer
+          lastReportedTime = Date.now();
         }
         if (name == cloneRepositoryTool.name) {
           // now that repository is determined, we try to update the system prompt
@@ -292,7 +324,6 @@ Users will primarily request software engineering assistance including bug fixes
         toolResult = `Error occurred when using tool ${toolUse.name}: ${(e as any).message}`;
       }
 
-      toolResult += `\nElapsed time since the last message to the user: ${Math.round((Date.now() - lastReportedTime) / 1000)} seconds.`;
       const toolResultMessage: Message = {
         role: 'user' as const,
         content: [
@@ -320,14 +351,19 @@ Users will primarily request software engineering assistance including bug fixes
       appendedItems.push(...savedItems);
     } else {
       const finalMessage = res.output?.message;
+      const mention = slackUserId ? `<@${slackUserId}> ` : '';
       if (finalMessage?.content == null || finalMessage.content?.length == 0) {
         // It seems this happens sometimes. We can just ignore this message.
+        console.log('final message is empty. ignoring...');
+        if (mention) {
+          await sendMessage(mention);
+        }
         break;
       }
       // Save assistant message with token count
       await saveConversationHistory(workerId, finalMessage, outputTokenCount, 'assistant');
       // reasoning有効の場合、content[0]には推論結果が入る
-      await sendMessage(`${(finalMessage.content?.at(-1) as any)?.text}`);
+      await sendMessage(`${mention}${(finalMessage.content?.at(-1) as any)?.text}`);
       break;
     }
   }
