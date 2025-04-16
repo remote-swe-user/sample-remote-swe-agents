@@ -14,6 +14,10 @@ This is an example implementation of a fully autonomous software development AI 
 * Reads knowledge from your preferred formats (.clinerules, CLAUDE.md, etc.)
 * Can work on OSS forked repositories!
 
+## Example Pull Requests Created by the Remote SWE Agents
+
+You can view all the public pull requests created by the agent [here](https://github.com/search?q=is%3Apr+author%3Aremote-swe-user&type=pullrequests). All of the commits pushed from the GitHub user is written by the agent autonomously.
+
 ## Installation Steps
 
 Since this project is fully self-hosted, the setup process requires several manual operations such as configuring a Slack app.
