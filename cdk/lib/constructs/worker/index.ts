@@ -196,6 +196,7 @@ ExecStartPre=/bin/bash -c '\\
 ExecStart=/bin/bash -l -c 'npx tsx src/main.ts'
 Restart=always
 RestartSec=10
+TimeoutStartSec=600
 TimeoutStopSec=10s
 StandardOutput=journal
 StandardError=journal
@@ -214,6 +215,7 @@ Environment=TABLE_NAME=${props.storageTable.tableName}
 Environment=BUCKET_NAME=${props.imageBucket.bucketName}
 Environment=BEDROCK_AWS_ACCOUNTS=${props.loadBalancing?.awsAccounts.join(',') ?? ''}
 Environment=BEDROCK_AWS_ROLE_NAME=${props.loadBalancing?.roleName ?? ''}
+# Environment=MODEL_OVERRIDE=nova-pro
 
 [Install]
 WantedBy=multi-user.target
