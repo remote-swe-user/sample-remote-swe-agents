@@ -303,9 +303,10 @@ Here we assume you request 100 sessions per month. The monthly cost is proportio
 | Lambda | Requests: 30 invocations/session | 0.0006 |
 | Lambda | Duration: 128MB, 1s/invocation | 0.00017 |
 | API Gateway | Requests: 20 requests/session | 0.002 |
-| Bedrock | Input: Sonnet 3.7 400k tokens/session | 120.00 |
+| Bedrock | Input (cache write): Sonnet 3.7 100k tokens/session | 37.5 |
+| Bedrock | Input (cache read): Sonnet 3.7 1M tokens/session | 30.00 |
 | Bedrock | Output: Sonnet 3.7 20k tokens/session | 30.00 |
-| TOTAL | | 171.73 |
+| TOTAL | | 120 |
 
 Additionally, when the system is not in use (i.e., no messages are sent to the agents), the ongoing costs are minimal (~0 USD).
 
