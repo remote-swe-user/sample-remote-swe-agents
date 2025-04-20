@@ -1819,7 +1819,7 @@ cat << EOF > /etc/fluent-bit/fluent-bit.conf
                     "Ref": "WorkerLogGroup67ABCFFE",
                   },
                   "
-    log_stream_name   log-\${WORKER_ID}
+    log_stream_name   log-\\\${WORKER_ID}
     auto_create_group false
 EOF
 

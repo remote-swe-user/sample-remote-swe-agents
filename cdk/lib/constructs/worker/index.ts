@@ -267,7 +267,7 @@ cat << EOF > /etc/fluent-bit/fluent-bit.conf
     Match        myapp
     region       ${Stack.of(this).region}
     log_group_name    ${this.logGroup.logGroupName}
-    log_stream_name   log-\${WORKER_ID}
+    log_stream_name   log-\\\${WORKER_ID}
     auto_create_group false
 EOF
 
