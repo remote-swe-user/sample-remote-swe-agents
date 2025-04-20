@@ -3,8 +3,7 @@ import { CfnStage, HttpApi } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { ITableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Architecture, Code, DockerImageCode, DockerImageFunction, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Architecture, DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { WorkerBus } from '../worker/bus';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
@@ -38,7 +37,7 @@ export class SlackBolt extends Construct {
           .toString()
           .split('\n'),
         cmd: ['async-handler.handler'],
-        platform: Platform.LINUX_ARM64,
+        platform: Platform.LINUX_AMD64,
       }),
       timeout: Duration.minutes(10),
       environment: {
@@ -49,7 +48,7 @@ export class SlackBolt extends Construct {
         TABLE_NAME: props.storageTable.tableName,
         BUCKET_NAME: props.storageBucket.bucketName,
       },
-      architecture: Architecture.ARM_64,
+      architecture: Architecture.X86_64,
     });
     props.storageTable.grantReadWriteData(asyncHandler);
     props.storageBucket.grantReadWrite(asyncHandler);
@@ -61,7 +60,7 @@ export class SlackBolt extends Construct {
         exclude: readFileSync(join('..', 'docker', 'slack-bolt-app.Dockerfile.dockerignore'))
           .toString()
           .split('\n'),
-        platform: Platform.LINUX_ARM64,
+        platform: Platform.LINUX_AMD64,
       }),
       timeout: Duration.seconds(29),
       environment: {
@@ -74,7 +73,7 @@ export class SlackBolt extends Construct {
         LOG_GROUP_NAME: props.workerLogGroupName,
         ...(props.adminUserIdList ? { ADMIN_USER_ID_LIST: props.adminUserIdList } : {}),
       },
-      architecture: Architecture.ARM_64,
+      architecture: Architecture.X86_64,
     });
     asyncHandler.grantInvoke(handler);
     props.storageTable.grantReadWriteData(handler);
