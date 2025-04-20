@@ -12,6 +12,7 @@ import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { IStringParameter } from 'aws-cdk-lib/aws-ssm';
 import { join } from 'path';
 import { readFileSync } from 'fs';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface SlackBoltProps {
   signingSecretParameter: IStringParameter;
@@ -37,6 +38,7 @@ export class SlackBolt extends Construct {
           .toString()
           .split('\n'),
         cmd: ['async-handler.handler'],
+        platform: Platform.LINUX_ARM64,
       }),
       timeout: Duration.minutes(10),
       environment: {
@@ -59,6 +61,7 @@ export class SlackBolt extends Construct {
         exclude: readFileSync(join('..', 'docker', 'slack-bolt-app.Dockerfile.dockerignore'))
           .toString()
           .split('\n'),
+        platform: Platform.LINUX_ARM64,
       }),
       timeout: Duration.seconds(29),
       environment: {
