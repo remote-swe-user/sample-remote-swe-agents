@@ -37,12 +37,7 @@ export class EC2GarbageCollector extends Construct {
     // Add policies for AMI operations and SSM parameter access
     handler.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: [
-          'ec2:DescribeImages',
-          'ec2:DeregisterImage',
-          'ec2:DeleteSnapshot',
-          'ssm:GetParameter',
-        ],
+        actions: ['ec2:DescribeImages', 'ec2:DeregisterImage', 'ec2:DeleteSnapshot', 'ssm:GetParameter'],
         resources: ['*'],
       })
     );
@@ -50,10 +45,7 @@ export class EC2GarbageCollector extends Construct {
     // Add policies for EC2 Image Builder operations
     handler.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: [
-          'imagebuilder:DeleteImage',
-          'imagebuilder:GetImage',
-        ],
+        actions: ['imagebuilder:DeleteImage', 'imagebuilder:GetImage'],
         resources: ['*'],
       })
     );

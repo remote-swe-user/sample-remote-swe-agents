@@ -1,4 +1,11 @@
-import { EC2Client, DescribeInstancesCommand, TerminateInstancesCommand, DescribeImagesCommand, DeregisterImageCommand, DeleteSnapshotCommand } from '@aws-sdk/client-ec2';
+import {
+  EC2Client,
+  DescribeInstancesCommand,
+  TerminateInstancesCommand,
+  DescribeImagesCommand,
+  DeregisterImageCommand,
+  DeleteSnapshotCommand,
+} from '@aws-sdk/client-ec2';
 import { ImagebuilderClient, DeleteImageCommand } from '@aws-sdk/client-imagebuilder';
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 
@@ -15,10 +22,9 @@ export const handler = async () => {
   try {
     // Part 1: EC2 Instance garbage collection
     await cleanupEc2Instances(now);
-    
+
     // Part 2: AMI garbage collection
     await cleanupAmis(now);
-    
   } catch (error) {
     console.error('Error in garbage collection:', error);
     throw error;
@@ -79,16 +85,14 @@ async function cleanupAmis(now: Date) {
 
   try {
     // Get the current AMI ID from SSM Parameter Store
-    const currentAmiIdParam = await ssmClient.send(
-      new GetParameterCommand({ Name: '/remote-swe/worker/ami-id' })
-    );
-    
+    const currentAmiIdParam = await ssmClient.send(new GetParameterCommand({ Name: '/remote-swe/worker/ami-id' }));
+
     const currentAmiId = currentAmiIdParam.Parameter?.Value;
     if (!currentAmiId) {
       console.log('No current AMI ID found in parameter store');
       return;
     }
-    
+
     console.log(`Current AMI ID in use: ${currentAmiId}`);
 
     // Get all AMIs owned by self with name starting with the image recipe name
@@ -97,10 +101,10 @@ async function cleanupAmis(now: Date) {
         Owners: ['self'],
         Filters: [
           {
-            Name: 'name', 
-            Values: [`${imageRecipeName}*`]
-          }
-        ]
+            Name: 'name',
+            Values: [`${imageRecipeName}*`],
+          },
+        ],
       })
     );
 
@@ -116,80 +120,89 @@ async function cleanupAmis(now: Date) {
     // Process each AMI
     for (const image of describeImagesResponse.Images) {
       if (!image.ImageId || !image.CreationDate) continue;
-      
+
       // Skip the AMI that is currently in use
       if (image.ImageId === currentAmiId) {
         console.log(`Skipping current AMI in use: ${image.ImageId}`);
         continue;
       }
-      
+
       const creationDate = new Date(image.CreationDate);
       const ageInDays = (now.getTime() - creationDate.getTime()) / (1000 * 3600 * 24);
-      
+
       // Only delete AMIs that are older than 1 day
       if (ageInDays > 1) {
         console.log(`Deleting AMI ${image.ImageId}, created ${image.CreationDate}, age: ${ageInDays.toFixed(2)} days`);
-        
+
         // Get the Image Builder ARN from tags if available
         let imageBuilderArn = null;
         if (image.Tags) {
-          const imageBuilderArnTag = image.Tags.find(tag => tag.Key === 'Ec2ImageBuilderArn');
+          const imageBuilderArnTag = image.Tags.find((tag) => tag.Key === 'Ec2ImageBuilderArn');
           if (imageBuilderArnTag && imageBuilderArnTag.Value) {
             imageBuilderArn = imageBuilderArnTag.Value;
           }
         }
-        
+
         // 1. Delete the AMI
         deletePromises.push(
-          ec2Client.send(
-            new DeregisterImageCommand({
-              ImageId: image.ImageId
+          ec2Client
+            .send(
+              new DeregisterImageCommand({
+                ImageId: image.ImageId,
+              })
+            )
+            .then(() => {
+              console.log(`Successfully deregistered AMI: ${image.ImageId}`);
             })
-          ).then(() => {
-            console.log(`Successfully deregistered AMI: ${image.ImageId}`);
-          }).catch((error: Error) => {
-            console.error(`Error deregistering AMI ${image.ImageId}:`, error);
-          })
+            .catch((error: Error) => {
+              console.error(`Error deregistering AMI ${image.ImageId}:`, error);
+            })
         );
-        
+
         // 2. Delete associated snapshots
         if (image.BlockDeviceMappings) {
           for (const blockDevice of image.BlockDeviceMappings) {
             if (blockDevice.Ebs && blockDevice.Ebs.SnapshotId) {
               deletePromises.push(
-                ec2Client.send(
-                  new DeleteSnapshotCommand({
-                    SnapshotId: blockDevice.Ebs.SnapshotId
+                ec2Client
+                  .send(
+                    new DeleteSnapshotCommand({
+                      SnapshotId: blockDevice.Ebs.SnapshotId,
+                    })
+                  )
+                  .then(() => {
+                    console.log(`Successfully deleted snapshot: ${blockDevice.Ebs?.SnapshotId}`);
                   })
-                ).then(() => {
-                  console.log(`Successfully deleted snapshot: ${blockDevice.Ebs?.SnapshotId}`);
-                }).catch((error: Error) => {
-                  console.error(`Error deleting snapshot ${blockDevice.Ebs?.SnapshotId}:`, error);
-                })
+                  .catch((error: Error) => {
+                    console.error(`Error deleting snapshot ${blockDevice.Ebs?.SnapshotId}:`, error);
+                  })
               );
             }
           }
         }
-        
+
         // 3. Delete the corresponding Image Builder image if ARN is available
         if (imageBuilderArn) {
           deletePromises.push(
-            imagebuilderClient.send(
-              new DeleteImageCommand({
-                imageBuildVersionArn: imageBuilderArn
+            imagebuilderClient
+              .send(
+                new DeleteImageCommand({
+                  imageBuildVersionArn: imageBuilderArn,
+                })
+              )
+              .then(() => {
+                console.log(`Successfully deleted Image Builder image: ${imageBuilderArn}`);
               })
-            ).then(() => {
-              console.log(`Successfully deleted Image Builder image: ${imageBuilderArn}`);
-            }).catch((error: Error) => {
-              console.error(`Error deleting Image Builder image ${imageBuilderArn}:`, error);
-            })
+              .catch((error: Error) => {
+                console.error(`Error deleting Image Builder image ${imageBuilderArn}:`, error);
+              })
           );
         }
       } else {
         console.log(`Skipping AMI ${image.ImageId}, too recent (${ageInDays.toFixed(2)} days old)`);
       }
     }
-    
+
     if (deletePromises.length > 0) {
       await Promise.allSettled(deletePromises);
       console.log(`Deleted ${deletePromises.length} resources (AMIs, snapshots, and Image Builder images)`);
