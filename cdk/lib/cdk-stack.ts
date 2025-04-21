@@ -28,6 +28,7 @@ export interface MainStackProps extends cdk.StackProps {
     awsAccounts: string[];
     roleName: string;
   };
+  workerAmiIdParameterName: string;
 }
 
 export class MainStack extends cdk.Stack {
@@ -92,6 +93,7 @@ export class MainStack extends cdk.Stack {
           }),
       loadBalancing: props.loadBalancing,
       accessLogBucket,
+      amiIdParameterName: props.workerAmiIdParameterName,
     });
 
     new SlackBolt(this, 'SlackBolt', {
@@ -104,6 +106,7 @@ export class MainStack extends cdk.Stack {
       storageBucket: storage.bucket,
       adminUserIdList: props.slack.adminUserIdList,
       workerLogGroupName: worker.logGroup.logGroupName,
+      workerAmiIdParameterName: props.workerAmiIdParameterName,
     });
 
     new EC2GarbageCollector(this, 'EC2GarbageCollector');

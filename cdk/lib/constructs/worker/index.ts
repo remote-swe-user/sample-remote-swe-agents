@@ -3,12 +3,13 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { WorkerBus } from './bus';
 import { BlockPublicAccess, Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
-import { DockerImage, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { AssetHashType, DockerImage, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { join } from 'path';
 import { ITableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { IStringParameter, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import { WorkerImageBuilder } from './image-builder';
 
 export interface WorkerProps {
   vpc: ec2.IVpc;
@@ -26,6 +27,7 @@ export interface WorkerProps {
     roleName: string;
   };
   accessLogBucket: IBucket;
+  amiIdParameterName: string;
 }
 
 export class Worker extends Construct {
@@ -60,6 +62,9 @@ export class Worker extends Construct {
       serverAccessLogsPrefix: 's3AccessLog/SourceBucket/',
     });
 
+    const bus = new WorkerBus(this, 'Bus', {});
+    this.bus = bus;
+
     new BucketDeployment(this, 'SourceDeployment', {
       destinationBucket: sourceBucket,
       sources: [
@@ -79,12 +84,10 @@ export class Worker extends Construct {
             ],
             image: DockerImage.fromBuild('..', { file: join('docker', 'worker.Dockerfile') }),
           },
+          assetHashType: AssetHashType.OUTPUT,
         }),
       ],
     });
-
-    const bus = new WorkerBus(this, 'Bus', {});
-    this.bus = bus;
 
     const role = new iam.Role(this, 'Role', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -98,7 +101,7 @@ export class Worker extends Construct {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.LARGE),
       blockDevices: [
         {
-          deviceName: '/dev/xvda',
+          deviceName: '/dev/sda1',
           volume: ec2.BlockDeviceVolume.ebs(50, {
             volumeType: ec2.EbsDeviceVolumeType.GP3,
             encrypted: true,
@@ -114,7 +117,8 @@ export class Worker extends Construct {
     });
     const userData = launchTemplate.userData!;
 
-    userData.addCommands(`
+    userData.addCommands(
+      `
 apt-get -o DPkg::Lock::Timeout=-1 update
 apt-get -o DPkg::Lock::Timeout=-1 install -y docker.io python3-pip unzip
 ln -s -f /usr/bin/pip3 /usr/bin/pip
@@ -145,11 +149,13 @@ sudo -u ubuntu bash -c 'git config --global user.email "${props.gitHubApp?.appId
 
 # install uv
 sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
-`);
+      `.trim()
+    );
 
     if (privateKey) {
       // install gh-token to obtain github token using github apps credentials
-      userData.addCommands(`
+      userData.addCommands(
+        `
 aws ssm get-parameter \
     --name ${privateKey.parameterName} \
     --query "Parameter.Value" \
@@ -157,12 +163,21 @@ aws ssm get-parameter \
 curl -L "https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64" -o gh-token
 chmod +x gh-token
 mv gh-token /usr/bin
-`);
+      `.trim()
+      );
     }
 
-    userData.addCommands(`
+    userData.addCommands(
+      `
 mkdir -p /opt/myapp && cd /opt/myapp
 chown -R ubuntu:ubuntu /opt/myapp
+
+# Install Playwright dependencies
+sudo -u ubuntu bash -c "npx playwright install-deps"
+sudo -u ubuntu bash -c "npx playwright install chromium"
+
+# Configure GitHub CLI
+sudo -u ubuntu bash -c "gh config set prompt disabled"
 
 # Create setup script
 mkdir -p /opt/scripts
@@ -182,13 +197,6 @@ rm -f source.tar.gz
 # Install dependencies and build
 npm ci
 npm run build -w packages/agent-core
-
-# Install Playwright dependencies
-npx playwright install-deps
-npx playwright install chromium
-
-# Configure GitHub CLI
-gh config set prompt disabled
 
 # Set up dynamic environment variables
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
@@ -240,7 +248,8 @@ Environment=BEDROCK_AWS_ROLE_NAME=${props.loadBalancing?.roleName ?? ''}
 [Install]
 WantedBy=multi-user.target
 EOF
-`);
+`.trim()
+    );
 
     userData.addCommands(`
 # Configure Fluent Bit for CloudWatch Logs
@@ -299,17 +308,28 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-`);
 
-    userData.addCommands(`
 systemctl daemon-reload
 systemctl enable fluent-bit
-systemctl start fluent-bit
 systemctl enable myapp
+      `);
+
+    const installDependenciesCommand = userData.render();
+
+    userData.addCommands(
+      `
+systemctl start fluent-bit
 systemctl start myapp
-`);
+      `.trim()
+    );
 
     this.launchTemplate = launchTemplate;
+
+    new WorkerImageBuilder(this, 'ImageBuilder', {
+      vpc,
+      installDependenciesCommand,
+      amiIdParameterName: props.amiIdParameterName,
+    });
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({

@@ -11,6 +11,7 @@ const props: MainStackProps = {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
   },
+  workerAmiIdParameterName: '/remote-swe/worker/ami-id',
   slack: {
     botTokenParameterName: '/remote-swe/slack/bot-token',
     signingSecretParameterName: '/remote-swe/slack/signing-secret',

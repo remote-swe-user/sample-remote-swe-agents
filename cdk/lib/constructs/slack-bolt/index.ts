@@ -8,7 +8,7 @@ import { Construct } from 'constructs';
 import { WorkerBus } from '../worker/bus';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { IStringParameter } from 'aws-cdk-lib/aws-ssm';
+import { IStringParameter, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
@@ -23,6 +23,7 @@ export interface SlackBoltProps {
   storageBucket: IBucket;
   adminUserIdList?: string;
   workerLogGroupName: string;
+  workerAmiIdParameterName: string;
 }
 
 export class SlackBolt extends Construct {
@@ -41,7 +42,8 @@ export class SlackBolt extends Construct {
       }),
       timeout: Duration.minutes(10),
       environment: {
-        LAUNCH_TEMPLATE_ID: props.launchTemplateId,
+        WORKER_LAUNCH_TEMPLATE_ID: props.launchTemplateId,
+        WORKER_AMI_PARAMETER_NAME: props.workerAmiIdParameterName,
         SUBNET_ID_LIST: props.subnetIdListForWorkers,
         BOT_TOKEN: botTokenParameter.stringValue,
         EVENT_HTTP_ENDPOINT: props.workerBus.httpEndpoint,
@@ -53,6 +55,12 @@ export class SlackBolt extends Construct {
     props.storageTable.grantReadWriteData(asyncHandler);
     props.storageBucket.grantReadWrite(asyncHandler);
     props.workerBus.api.grantPublish(asyncHandler);
+
+    const workerAmiId = StringParameter.fromStringParameterAttributes(this, 'WorkerAmiId', {
+      parameterName: props.workerAmiIdParameterName,
+      forceDynamicReference: true,
+    });
+    workerAmiId.grantRead(asyncHandler);
 
     const handler = new DockerImageFunction(this, 'Handler', {
       code: DockerImageCode.fromImageAsset('..', {
