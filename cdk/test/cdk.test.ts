@@ -4,10 +4,6 @@ import { readFileSync } from 'fs';
 import { MainStack } from '../lib/cdk-stack';
 
 test('Snapshot test', () => {
-  // Always skip snapshot test for now to avoid CI failures
-  console.log('Skipping snapshot test');
-  return;
-
   jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
 
   const app = new cdk.App({
