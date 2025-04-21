@@ -62,7 +62,7 @@ async function cleanupEc2Instances(now: Date) {
     } else {
       console.log('No instances to terminate');
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error processing instances:', error);
     throw error;
   }
@@ -147,7 +147,7 @@ async function cleanupAmis(now: Date) {
             })
           ).then(() => {
             console.log(`Successfully deregistered AMI: ${image.ImageId}`);
-          }).catch(error => {
+          }).catch((error: Error) => {
             console.error(`Error deregistering AMI ${image.ImageId}:`, error);
           })
         );
@@ -163,7 +163,7 @@ async function cleanupAmis(now: Date) {
                   })
                 ).then(() => {
                   console.log(`Successfully deleted snapshot: ${blockDevice.Ebs?.SnapshotId}`);
-                }).catch(error => {
+                }).catch((error: Error) => {
                   console.error(`Error deleting snapshot ${blockDevice.Ebs?.SnapshotId}:`, error);
                 })
               );
@@ -180,7 +180,7 @@ async function cleanupAmis(now: Date) {
               })
             ).then(() => {
               console.log(`Successfully deleted Image Builder image: ${imageBuilderArn}`);
-            }).catch(error => {
+            }).catch((error: Error) => {
               console.error(`Error deleting Image Builder image ${imageBuilderArn}:`, error);
             })
           );
@@ -196,7 +196,7 @@ async function cleanupAmis(now: Date) {
     } else {
       console.log('No AMIs to delete');
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error processing AMIs:', error);
     throw error;
   }
