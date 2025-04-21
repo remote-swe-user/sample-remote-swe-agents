@@ -122,7 +122,7 @@ export class Worker extends Construct {
 apt-get -o DPkg::Lock::Timeout=-1 update
 apt-get -o DPkg::Lock::Timeout=-1 install -y docker.io python3-pip unzip
 ln -s -f /usr/bin/pip3 /usr/bin/pip
-ln -s -f /usr/bin/python3 /usr/bin/pip
+ln -s -f /usr/bin/python3 /usr/bin/python
 
 # Install Node.js
 sudo -u ubuntu bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"

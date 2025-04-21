@@ -2025,7 +2025,7 @@ phases:
 
               ln -s -f /usr/bin/pip3 /usr/bin/pip
 
-              ln -s -f /usr/bin/python3 /usr/bin/pip
+              ln -s -f /usr/bin/python3 /usr/bin/python
 
 
               # Install Node.js
@@ -2360,11 +2360,11 @@ phases:
             - docker --version
             - python --version
             - gh --version
-            - sudo -u ubuntu -i -c "uv --version"
-            - sudo -u ubuntu -i -c "uvx --version"
-            - sudo -u ubuntu -i -c "node --version"
-            - sudo -u ubuntu -i -c "npm --version"
-            - sudo -u ubuntu -i -c "npx --version"
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
   - name: test
     steps:
       - name: HelloWorldStep
@@ -2375,11 +2375,11 @@ phases:
             - docker --version
             - python --version
             - gh --version
-            - sudo -u ubuntu -i -c "uv --version"
-            - sudo -u ubuntu -i -c "uvx --version"
-            - sudo -u ubuntu -i -c "node --version"
-            - sudo -u ubuntu -i -c "npm --version"
-            - sudo -u ubuntu -i -c "npx --version"
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
 ",
             ],
           ],
@@ -2574,7 +2574,7 @@ phases:
 
               ln -s -f /usr/bin/pip3 /usr/bin/pip
 
-              ln -s -f /usr/bin/python3 /usr/bin/pip
+              ln -s -f /usr/bin/python3 /usr/bin/python
 
 
               # Install Node.js
@@ -2909,11 +2909,11 @@ phases:
             - docker --version
             - python --version
             - gh --version
-            - sudo -u ubuntu -i -c "uv --version"
-            - sudo -u ubuntu -i -c "uvx --version"
-            - sudo -u ubuntu -i -c "node --version"
-            - sudo -u ubuntu -i -c "npm --version"
-            - sudo -u ubuntu -i -c "npx --version"
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
   - name: test
     steps:
       - name: HelloWorldStep
@@ -2924,11 +2924,11 @@ phases:
             - docker --version
             - python --version
             - gh --version
-            - sudo -u ubuntu -i -c "uv --version"
-            - sudo -u ubuntu -i -c "uvx --version"
-            - sudo -u ubuntu -i -c "node --version"
-            - sudo -u ubuntu -i -c "npm --version"
-            - sudo -u ubuntu -i -c "npx --version"
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
 ",
             ],
           ],
@@ -3007,7 +3007,7 @@ phases:
 apt-get -o DPkg::Lock::Timeout=-1 update
 apt-get -o DPkg::Lock::Timeout=-1 install -y docker.io python3-pip unzip
 ln -s -f /usr/bin/pip3 /usr/bin/pip
-ln -s -f /usr/bin/python3 /usr/bin/pip
+ln -s -f /usr/bin/python3 /usr/bin/python
 
 # Install Node.js
 sudo -u ubuntu bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
