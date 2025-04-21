@@ -184,19 +184,57 @@ mkdir -p /opt/scripts
 cat << 'EOF' > /opt/scripts/start-app.sh
 #!/bin/bash -l
 
-# Clean up existing files
-rm -rf ./{*,.*}
+# File paths for source and etag
+SOURCE_BUCKET="${sourceBucket.bucketName}"
+SOURCE_KEY="source/source.tar.gz"
+SOURCE_ETAG_FILE="/opt/myapp/source.etag"
+SOURCE_DIR="/opt/myapp"
+CURRENT_DIR=$(pwd)
 
-# Download source code from S3
-aws s3 cp s3://${sourceBucket.bucketName}/source/source.tar.gz ./source.tar.gz
+# Function to download and extract source
+download_and_extract_source() {
+  # Clean up existing files
+  rm -rf ./{*,.*}
 
-# Extract and clean up
-tar -xvzf source.tar.gz
-rm -f source.tar.gz
+  # Download source code from S3
+  aws s3 cp s3://$SOURCE_BUCKET/$SOURCE_KEY ./source.tar.gz
+  
+  # Save the etag
+  aws s3api head-object --bucket $SOURCE_BUCKET --key $SOURCE_KEY --query ETag --output text > $SOURCE_ETAG_FILE
+  
+  # Extract and clean up
+  tar -xvzf source.tar.gz
+  rm -f source.tar.gz
 
-# Install dependencies and build
-npm ci
-npm run build -w packages/agent-core
+  # Install dependencies and build
+  npm ci
+  npm run build -w packages/agent-core
+}
+
+# Check if we need to download the source again
+DOWNLOAD_NEEDED=true
+
+if [ -f "$SOURCE_ETAG_FILE" ] && [ -d "$SOURCE_DIR/node_modules" ]; then
+  # Get the saved etag
+  SAVED_ETAG=$(cat $SOURCE_ETAG_FILE)
+  
+  # Get the current etag
+  CURRENT_ETAG=$(aws s3api head-object --bucket $SOURCE_BUCKET --key $SOURCE_KEY --query ETag --output text)
+  
+  # Compare etags
+  if [ "$SAVED_ETAG" == "$CURRENT_ETAG" ]; then
+    echo "Source code unchanged. Using existing installation."
+    DOWNLOAD_NEEDED=false
+  else
+    echo "Source code has changed. Downloading new version."
+  fi
+else
+  echo "No previous installation found or etag file missing. Downloading source."
+fi
+
+if [ "$DOWNLOAD_NEEDED" == "true" ]; then
+  download_and_extract_source
+fi
 
 # Set up dynamic environment variables
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
