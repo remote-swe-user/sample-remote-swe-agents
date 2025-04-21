@@ -125,10 +125,13 @@ ln -s -f /usr/bin/pip3 /usr/bin/pip
 ln -s -f /usr/bin/python3 /usr/bin/pip
 
 # Install Node.js
-snap install node --channel=22/stable --classic
+sudo -u ubuntu bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
+sudo -u ubuntu bash -c -i "nvm install 22"
 
 # Install AWS CLI
-snap install aws-cli --classic
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -q awscliv2.zip
+sudo ./aws/install
 
 # Install Fluent Bit
 curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
@@ -173,8 +176,8 @@ mkdir -p /opt/myapp && cd /opt/myapp
 chown -R ubuntu:ubuntu /opt/myapp
 
 # Install Playwright dependencies
-sudo -u ubuntu bash -c "npx playwright install-deps"
-sudo -u ubuntu bash -c "npx playwright install chromium"
+sudo -u ubuntu bash -i -c "npx playwright install-deps"
+sudo -u ubuntu bash -i -c "npx playwright install chromium"
 
 # Configure GitHub CLI
 sudo -u ubuntu bash -c "gh config set prompt disabled"
@@ -225,7 +228,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/opt/myapp
 
-ExecStart=/opt/scripts/start-app.sh
+ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
 Restart=always
 RestartSec=10
 TimeoutStartSec=600
