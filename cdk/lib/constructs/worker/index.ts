@@ -34,6 +34,7 @@ export class Worker extends Construct {
   public readonly launchTemplate: ec2.LaunchTemplate;
   public readonly bus: WorkerBus;
   public readonly logGroup: logs.LogGroup;
+  public readonly imageBuilder: WorkerImageBuilder;
 
   constructor(scope: Construct, id: string, props: WorkerProps) {
     super(scope, id);
@@ -325,7 +326,7 @@ systemctl start myapp
 
     this.launchTemplate = launchTemplate;
 
-    new WorkerImageBuilder(this, 'ImageBuilder', {
+    this.imageBuilder = new WorkerImageBuilder(this, 'ImageBuilder', {
       vpc,
       installDependenciesCommand,
       amiIdParameterName: props.amiIdParameterName,
