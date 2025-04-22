@@ -250,6 +250,11 @@ else
   download_fresh_files
 fi
 
+if [ "$NO_START" == "true" ]; then
+  echo "NO_START=true is passed. Existing..."
+  exit 0
+fi
+
 # Set up dynamic environment variables
 TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
 export WORKER_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
@@ -266,6 +271,9 @@ EOF
 # Make script executable and set ownership
 chmod +x /opt/scripts/start-app.sh
 chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+# cache worker files
+sudo -u ubuntu bash -i -c "NO_START=true /opt/scripts/start-app.sh"
 
 cat << EOF > /etc/systemd/system/myapp.service
 [Unit]
