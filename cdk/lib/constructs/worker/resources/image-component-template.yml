@@ -20,13 +20,13 @@ phases:
           commands:
             - aws --version
             - docker --version
-            - uv --version
-            - uvx --version
             - python --version
             - gh --version
-            - node --version
-            - npm --version
-            - npx --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
   - name: test
     steps:
       - name: HelloWorldStep
@@ -35,10 +35,10 @@ phases:
           commands:
             - aws --version
             - docker --version
-            - uv --version
-            - uvx --version
             - python --version
             - gh --version
-            - node --version
-            - npm --version
-            - npx --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"

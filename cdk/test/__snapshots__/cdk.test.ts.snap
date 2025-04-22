@@ -1,94 +1,82 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Snapshot test 1`] = `
-Object {
+{
   "Description": "Remote SWE Agents stack (uksb-lv52f92xel)",
-  "Outputs": Object {
-    "SlackBoltEndpointUrl89D2B06F": Object {
-      "Value": Object {
-        "Fn::GetAtt": Array [
+  "Outputs": {
+    "SlackBoltEndpointUrl89D2B06F": {
+      "Value": {
+        "Fn::GetAtt": [
           "SlackBoltApiFA4A2047",
           "ApiEndpoint",
         ],
       },
     },
-    "StorageBucketName37AA483C": Object {
-      "Value": Object {
+    "StorageBucketName37AA483C": {
+      "Value": {
         "Ref": "StorageImageBucket99BA9550",
       },
     },
-    "StorageTableNameB6E3E5D6": Object {
-      "Value": Object {
+    "StorageTableNameB6E3E5D6": {
+      "Value": {
         "Ref": "StorageHistory251A3AE8",
       },
     },
   },
-  "Parameters": Object {
-    "BootstrapVersion": Object {
+  "Parameters": {
+    "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "SsmParameterValueawsservicecanonicalubuntuserver2404stablecurrentamd64hvmebsgp3amiidC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
+    "SsmParameterValueawsservicecanonicalubuntuserver2404stablecurrentamd64hvmebsgp3amiidC96584B6F00A464EAD1953AFF4B05118Parameter": {
       "Default": "/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id",
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
     },
   },
-  "Resources": Object {
-    "EC2GarbageCollectorHandler4E42AD35": Object {
-      "DependsOn": Array [
-        "EC2GarbageCollectorHandlerServiceRole3E1396FE",
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
       ],
-      "Properties": Object {
-        "Architecture": "arm64",
-        "Code": Object {
+      "Properties": {
+        "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
           "S3Key": "REDACTED",
         },
-        "Environment": Object {
-          "Variables": Object {
-            "EXPIRATION_IN_DAYS": "1",
-            "IMAGE_RECIPE_NAME": Object {
-              "Fn::GetAtt": [
-                "WorkerImageBuilderImagePipelineV2ImageRecipe351515D4",
-                "Name",
-              ],
-            },
-          },
-        },
         "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "EC2GarbageCollectorHandlerServiceRole3E1396FE",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
             "Arn",
           ],
         },
         "Runtime": "nodejs20.x",
-        "Timeout": 300,
+        "Timeout": 120,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "EC2GarbageCollectorHandlerServiceRole3E1396FE": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -99,20 +87,531 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "EC2GarbageCollectorHandlerServiceRoleDefaultPolicy1FE51FB9": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "ec2:DeleteSnapshot",
-                "ec2:DeregisterImage",
-                "ec2:DescribeImages",
+    "AccessLogAutoDeleteObjectsCustomResource6A56D3C2": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "AccessLogPolicy4B3DB856",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "AccessLogD598EBE9",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AccessLogD598EBE9": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AccessLogPolicy4B3DB856": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "AccessLogD598EBE9",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "AccessLogD598EBE9",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "AccessLogD598EBE9",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:PutBucketPolicy",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "AccessLogD598EBE9",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "AccessLogD598EBE9",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::GetAtt": [
+                      "StorageImageBucket99BA9550",
+                      "Arn",
+                    ],
+                  },
+                },
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "logging.s3.amazonaws.com",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "AccessLogD598EBE9",
+                        "Arn",
+                      ],
+                    },
+                    "/s3AccessLog/ImageBucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "ArnLike": {
+                  "aws:SourceArn": {
+                    "Fn::GetAtt": [
+                      "WorkerSourceBucket539ACD15",
+                      "Arn",
+                    ],
+                  },
+                },
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "logging.s3.amazonaws.com",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "AccessLogD598EBE9",
+                        "Arn",
+                      ],
+                    },
+                    "/s3AccessLog/SourceBucket/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+      "DependsOn": [
+        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+          },
+        },
+        "Handler": "index.handler",
+        "Layers": [
+          {
+            "Ref": "WorkerSourceDeploymentAwsCliLayer8B16D5B0",
+          },
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.11",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:s3:::cdk-hnb659fds-assets-123456789012-us-east-1",
+                "arn:aws:s3:::cdk-hnb659fds-assets-123456789012-us-east-1/*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:Abort*",
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "WorkerSourceBucket539ACD15",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WorkerSourceBucket539ACD15",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+        "Roles": [
+          {
+            "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+      "DependsOn": [
+        "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Lambda function for auto-deleting objects in ",
+              {
+                "Ref": "AccessLogD598EBE9",
+              },
+              " S3 bucket.",
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CustomVpcRestrictDefaultSGCustomResourceProviderHandlerDC833E5E": {
+      "DependsOn": [
+        "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Description": "Lambda function for removing all inbound/outbound rules from the VPC default security group",
+        "Handler": "__entrypoint__.handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "ec2:AuthorizeSecurityGroupIngress",
+                    "ec2:AuthorizeSecurityGroupEgress",
+                    "ec2:RevokeSecurityGroupIngress",
+                    "ec2:RevokeSecurityGroupEgress",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:ec2:us-east-1:123456789012:security-group/",
+                          {
+                            "Fn::GetAtt": [
+                              "VpcV257066EE3",
+                              "DefaultSecurityGroup",
+                            ],
+                          },
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "Inline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EC2GarbageCollectorHandler7804A5C4": {
+      "DependsOn": [
+        "EC2GarbageCollectorHandlerServiceRoleDefaultPolicyB666A478",
+        "EC2GarbageCollectorHandlerServiceRole038CBC88",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Environment": {
+          "Variables": {
+            "EXPIRATION_IN_DAYS": "1",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "EC2GarbageCollectorHandlerServiceRole038CBC88",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "EC2GarbageCollectorHandlerServiceRole038CBC88": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EC2GarbageCollectorHandlerServiceRoleDefaultPolicyB666A478": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "ec2:DescribeInstances",
                 "ec2:TerminateInstances",
-                "imagebuilder:DeleteImage",
-                "imagebuilder:GetImage",
-                "ssm:GetParameter",
               ],
               "Effect": "Allow",
               "Resource": "*",
@@ -120,23 +619,43 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "EC2GarbageCollectorHandlerServiceRoleDefaultPolicy1FE51FB9",
-        "Roles": Array [
-          Object {
-            "Ref": "EC2GarbageCollectorHandlerServiceRole3E1396FE",
+        "PolicyName": "EC2GarbageCollectorHandlerServiceRoleDefaultPolicyB666A478",
+        "Roles": [
+          {
+            "Ref": "EC2GarbageCollectorHandlerServiceRole038CBC88",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "EC2GarbageCollectorScheduleF6CD97DD": Object {
-      "Properties": Object {
+    "EC2GarbageCollectorScheduleAllowEventRuleTestMainStackEC2GarbageCollectorHandler9F5B27AB4F33A51A": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EC2GarbageCollectorHandler7804A5C4",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "EC2GarbageCollectorScheduleBA6395AF",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "EC2GarbageCollectorScheduleBA6395AF": {
+      "Properties": {
         "ScheduleExpression": "rate(2 hours)",
-        "Targets": Array [
-          Object {
-            "Arn": Object {
-              "Fn::GetAtt": Array [
-                "EC2GarbageCollectorHandler4E42AD35",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "EC2GarbageCollectorHandler7804A5C4",
                 "Arn",
               ],
             },
@@ -146,25 +665,3007 @@ Object {
       },
       "Type": "AWS::Events::Rule",
     },
-    "EC2GarbageCollectorScheduleAllowEventRuleTestMainStackEC2GarbageCollectorHandler347502ED890054F4": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "EC2GarbageCollectorHandler4E42AD35",
+    "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4CE16D83A": {
+      "DependsOn": [
+        "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4ServiceRole075D0F03",
+      ],
+      "Properties": {
+        "Code": {
+          "ZipFile": "const response = require('cfn-response');
+
+exports.handler = async function (event, context) {
+  try {
+    console.log(event);
+    if (event.RequestType == 'Delete') {
+      return await response.send(event, context, response.SUCCESS);
+    }
+    const initialVersion = event.ResourceProperties.initialVersion;
+    if (event.RequestType == 'Create') {
+      return await response.send(event, context, response.SUCCESS, { version: initialVersion }, initialVersion);
+    }
+    if (event.RequestType == 'Update') {
+      const currentVersion = event.PhysicalResourceId; // e.g. 1.0.0
+      // increment patch version
+      const [major, minor, patch] = currentVersion.split('.').map(Number);
+      const [oMajor, oMinor, oPatch] = initialVersion.split('.').map(Number);
+      let newVersion = [major, minor, patch + 1].join('.');
+      if (oMajor > major || (oMajor == major && oMinor > minor)) {
+        newVersion = initialVersion;
+      }
+      await response.send(event, context, response.SUCCESS, { version: newVersion }, newVersion);
+    }
+  } catch (e) {
+    console.log(e);
+    await response.send(event, context, response.FAILED);
+  }
+};
+",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4ServiceRole075D0F03",
             "Arn",
           ],
         },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::GetAtt": Array [
-            "EC2GarbageCollectorScheduleF6CD97DD",
+        "Runtime": "nodejs22.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4ServiceRole075D0F03": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SlackBoltAccessLog187F540C": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "RetentionInDays": 731,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SlackBoltApiDefaultRoute0FF50963": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "SlackBoltApiFA4A2047",
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "$default",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "SlackBoltApiDefaultRouteIntegrationF7E4BDCB",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "SlackBoltApiDefaultRouteIntegrationF7E4BDCB": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "SlackBoltApiFA4A2047",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "SlackBoltHandler90CA9E6C",
             "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "SlackBoltApiDefaultRouteIntegrationPermission19F2BC3E": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SlackBoltHandler90CA9E6C",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:us-east-1:123456789012:",
+              {
+                "Ref": "SlackBoltApiFA4A2047",
+              },
+              "/*/*",
+            ],
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
+    "SlackBoltApiDefaultStage295284AC": {
+      "Properties": {
+        "AccessLogSettings": {
+          "DestinationArn": {
+            "Fn::GetAtt": [
+              "SlackBoltAccessLog187F540C",
+              "Arn",
+            ],
+          },
+          "Format": "{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}",
+        },
+        "ApiId": {
+          "Ref": "SlackBoltApiFA4A2047",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "SlackBoltApiFA4A2047": {
+      "Properties": {
+        "Description": "slack bolt app",
+        "Name": "Api",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "SlackBoltAsyncHandler9A0D467E": {
+      "DependsOn": [
+        "SlackBoltAsyncHandlerServiceRoleDefaultPolicy0506D445",
+        "SlackBoltAsyncHandlerServiceRole048AA480",
+      ],
+      "Properties": {
+        "Architectures": [
+          "x86_64",
+        ],
+        "Code": {
+          "ImageUri": {
+            "Fn::Sub": "REDACTED",
+          },
+        },
+        "Environment": {
+          "Variables": {
+            "BOT_TOKEN": "{{resolve:ssm:/remote-swe/slack/bot-token}}",
+            "BUCKET_NAME": {
+              "Ref": "StorageImageBucket99BA9550",
+            },
+            "EVENT_HTTP_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "WorkerBusApi8460ABC0",
+                      "Dns.Http",
+                    ],
+                  },
+                ],
+              ],
+            },
+            "SUBNET_ID_LIST": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+                  },
+                  ",",
+                  {
+                    "Ref": "VpcV2PublicSubnet2Subnet63F50919",
+                  },
+                  ",",
+                  {
+                    "Ref": "VpcV2PublicSubnet3SubnetC2A8D2E4",
+                  },
+                ],
+              ],
+            },
+            "TABLE_NAME": {
+              "Ref": "StorageHistory251A3AE8",
+            },
+            "WORKER_AMI_PARAMETER_NAME": "/remote-swe/worker/ami-id",
+            "WORKER_LAUNCH_TEMPLATE_ID": {
+              "Ref": "WorkerLaunchTemplateCB68F8E3",
+            },
+          },
+        },
+        "ImageConfig": {
+          "Command": [
+            "async-handler.handler",
+          ],
+        },
+        "PackageType": "Image",
+        "Role": {
+          "Fn::GetAtt": [
+            "SlackBoltAsyncHandlerServiceRole048AA480",
+            "Arn",
+          ],
+        },
+        "Timeout": 600,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SlackBoltAsyncHandlerServiceRole048AA480": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SlackBoltAsyncHandlerServiceRoleDefaultPolicy0506D445": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "StorageHistory251A3AE8",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:Abort*",
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageImageBucket99BA9550",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageImageBucket99BA9550",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "appsync:EventPublish",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:appsync:us-east-1:123456789012:apis/",
+                    {
+                      "Fn::GetAtt": [
+                        "WorkerBusApi8460ABC0",
+                        "ApiId",
+                      ],
+                    },
+                    "/channelNamespace/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ssm:DescribeParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+                "ssm:GetParameters",
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/worker/ami-id",
+            },
+            {
+              "Action": [
+                "bedrock:InvokeModel",
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "ec2:RunInstances",
+                "ec2:StartInstances",
+                "iam:PassRole",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SlackBoltAsyncHandlerServiceRoleDefaultPolicy0506D445",
+        "Roles": [
+          {
+            "Ref": "SlackBoltAsyncHandlerServiceRole048AA480",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SlackBoltHandler90CA9E6C": {
+      "DependsOn": [
+        "SlackBoltHandlerServiceRoleDefaultPolicy5C09762A",
+        "SlackBoltHandlerServiceRole7559063C",
+      ],
+      "Properties": {
+        "Architectures": [
+          "x86_64",
+        ],
+        "Code": {
+          "ImageUri": {
+            "Fn::Sub": "REDACTED",
+          },
+        },
+        "Environment": {
+          "Variables": {
+            "ASYNC_LAMBDA_NAME": {
+              "Ref": "SlackBoltAsyncHandler9A0D467E",
+            },
+            "BOT_TOKEN": "{{resolve:ssm:/remote-swe/slack/bot-token}}",
+            "BUCKET_NAME": {
+              "Ref": "StorageImageBucket99BA9550",
+            },
+            "EVENT_HTTP_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "WorkerBusApi8460ABC0",
+                      "Dns.Http",
+                    ],
+                  },
+                ],
+              ],
+            },
+            "LOG_GROUP_NAME": {
+              "Ref": "WorkerLogGroup67ABCFFE",
+            },
+            "SIGNING_SECRET": "{{resolve:ssm:/remote-swe/slack/signing-secret}}",
+            "TABLE_NAME": {
+              "Ref": "StorageHistory251A3AE8",
+            },
+          },
+        },
+        "PackageType": "Image",
+        "Role": {
+          "Fn::GetAtt": [
+            "SlackBoltHandlerServiceRole7559063C",
+            "Arn",
+          ],
+        },
+        "Timeout": 29,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SlackBoltHandlerServiceRole7559063C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SlackBoltHandlerServiceRoleDefaultPolicy5C09762A": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "SlackBoltAsyncHandler9A0D467E",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "SlackBoltAsyncHandler9A0D467E",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "StorageHistory251A3AE8",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:Abort*",
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageImageBucket99BA9550",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageImageBucket99BA9550",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "appsync:EventPublish",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:appsync:us-east-1:123456789012:apis/",
+                    {
+                      "Fn::GetAtt": [
+                        "WorkerBusApi8460ABC0",
+                        "ApiId",
+                      ],
+                    },
+                    "/channelNamespace/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SlackBoltHandlerServiceRoleDefaultPolicy5C09762A",
+        "Roles": [
+          {
+            "Ref": "SlackBoltHandlerServiceRole7559063C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "StorageHistory251A3AE8": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "PK",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "SK",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "PK",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "SK",
+            "KeyType": "RANGE",
+          },
+        ],
+        "Replicas": [
+          {
+            "Region": "us-east-1",
+          },
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "TTL",
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::GlobalTable",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "StorageImageBucket99BA9550": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "AccessLogD598EBE9",
+          },
+          "LogFilePrefix": "s3AccessLog/ImageBucket/",
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "StorageImageBucketAutoDeleteObjectsCustomResource3D66661D": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "StorageImageBucketPolicyC8C941D5",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "StorageImageBucket99BA9550",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "StorageImageBucketPolicyC8C941D5": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "StorageImageBucket99BA9550",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageImageBucket99BA9550",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageImageBucket99BA9550",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:PutBucketPolicy",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageImageBucket99BA9550",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageImageBucket99BA9550",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "VpcV257066EE3": {
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+    "VpcV2IGWD1C41C9C": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "VpcV2PublicSubnet1DefaultRoute00753B94": {
+      "DependsOn": [
+        "VpcV2VPCGW167F37E8",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VpcV2IGWD1C41C9C",
+        },
+        "RouteTableId": {
+          "Ref": "VpcV2PublicSubnet1RouteTable6094F526",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcV2PublicSubnet1RouteTable6094F526": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2/PublicSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcV2PublicSubnet1RouteTableAssociation7CEECFFF": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcV2PublicSubnet1RouteTable6094F526",
+        },
+        "SubnetId": {
+          "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcV2PublicSubnet1SubnetD67FC535": {
+      "Properties": {
+        "AvailabilityZone": "dummy1a",
+        "CidrBlock": "10.0.0.0/20",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2/PublicSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcV2PublicSubnet2DefaultRoute9078EB37": {
+      "DependsOn": [
+        "VpcV2VPCGW167F37E8",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VpcV2IGWD1C41C9C",
+        },
+        "RouteTableId": {
+          "Ref": "VpcV2PublicSubnet2RouteTable4FB96B9F",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcV2PublicSubnet2RouteTable4FB96B9F": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2/PublicSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcV2PublicSubnet2RouteTableAssociationE75A579E": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcV2PublicSubnet2RouteTable4FB96B9F",
+        },
+        "SubnetId": {
+          "Ref": "VpcV2PublicSubnet2Subnet63F50919",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcV2PublicSubnet2Subnet63F50919": {
+      "Properties": {
+        "AvailabilityZone": "dummy1b",
+        "CidrBlock": "10.0.16.0/20",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2/PublicSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcV2PublicSubnet3DefaultRoute9EAA960F": {
+      "DependsOn": [
+        "VpcV2VPCGW167F37E8",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VpcV2IGWD1C41C9C",
+        },
+        "RouteTableId": {
+          "Ref": "VpcV2PublicSubnet3RouteTable41D7421F",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcV2PublicSubnet3RouteTable41D7421F": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2/PublicSubnet3",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcV2PublicSubnet3RouteTableAssociationFBF2E5F4": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcV2PublicSubnet3RouteTable41D7421F",
+        },
+        "SubnetId": {
+          "Ref": "VpcV2PublicSubnet3SubnetC2A8D2E4",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcV2PublicSubnet3SubnetC2A8D2E4": {
+      "Properties": {
+        "AvailabilityZone": "dummy1c",
+        "CidrBlock": "10.0.32.0/20",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMainStack/VpcV2/PublicSubnet3",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcV2RestrictDefaultSecurityGroupCustomResourceA4609A1E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "Account": "123456789012",
+        "DefaultSecurityGroupId": {
+          "Fn::GetAtt": [
+            "VpcV257066EE3",
+            "DefaultSecurityGroup",
+          ],
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomVpcRestrictDefaultSGCustomResourceProviderHandlerDC833E5E",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::VpcRestrictDefaultSG",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "VpcV2VPCGW167F37E8": {
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "VpcV2IGWD1C41C9C",
+        },
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+    "WorkerBusApi8460ABC0": {
+      "Properties": {
+        "EventConfig": {
+          "AuthProviders": [
+            {
+              "AuthType": "AWS_IAM",
+            },
+          ],
+          "ConnectionAuthModes": [
+            {
+              "AuthType": "AWS_IAM",
+            },
+          ],
+          "DefaultPublishAuthModes": [
+            {
+              "AuthType": "AWS_IAM",
+            },
+          ],
+          "DefaultSubscribeAuthModes": [
+            {
+              "AuthType": "AWS_IAM",
+            },
+          ],
+        },
+        "Name": "RemoteWorkerEventBus",
+      },
+      "Type": "AWS::AppSync::Api",
+    },
+    "WorkerBusNamespaceA2110CC7": {
+      "Properties": {
+        "ApiId": {
+          "Fn::GetAtt": [
+            "WorkerBusApi8460ABC0",
+            "ApiId",
+          ],
+        },
+        "Name": "event-bus",
+      },
+      "Type": "AWS::AppSync::ChannelNamespace",
+    },
+    "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA": {
+      "Properties": {
+        "DisplayName": "Image Builder Notify",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161": {
+      "Properties": {
+        "Description": "A sample image pipeline",
+        "EnhancedImageMetadataEnabled": false,
+        "ImageRecipeArn": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2ImageRecipe351515D4",
+            "Arn",
+          ],
+        },
+        "InfrastructureConfigurationArn": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2InfrastructureConfigurationDA9D33AE",
+            "Arn",
+          ],
+        },
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DImagePipeline",
+      },
+      "Type": "AWS::ImageBuilder::ImagePipeline",
+    },
+    "WorkerImageBuilderImagePipelineV2ImageRecipe351515D4": {
+      "Properties": {
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 50,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "Components": [
+          {
+            "ComponentArn": {
+              "Fn::GetAtt": [
+                "WorkerImageBuilderImagePipelineV2WorkerDependencies6FAC8E07",
+                "Arn",
+              ],
+            },
+          },
+        ],
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6D6F803B",
+        "ParentImage": "{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}",
+        "Version": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImageRecipeVersion51A6E2BF",
+            "version",
+          ],
+        },
+      },
+      "Type": "AWS::ImageBuilder::ImageRecipe",
+    },
+    "WorkerImageBuilderImagePipelineV2InfrastructureConfigurationDA9D33AE": {
+      "DependsOn": [
+        "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C",
+      ],
+      "Properties": {
+        "Description": "Example Infrastructure Configuration for Image Builder",
+        "InstanceProfileName": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DProfile",
+        "InstanceTypes": [
+          "t3.medium",
+          "m5.large",
+          "m5.xlarge",
+        ],
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DInfraConfig",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "WorkerImageBuilderSecurityGroup45E41ABB",
+              "GroupId",
+            ],
+          },
+        ],
+        "SnsTopicArn": {
+          "Ref": "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA",
+        },
+        "SubnetId": {
+          "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+        },
+      },
+      "Type": "AWS::ImageBuilder::InfrastructureConfiguration",
+    },
+    "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C": {
+      "Properties": {
+        "InstanceProfileName": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DProfile",
+        "Roles": [
+          {
+            "Ref": "WorkerImageBuilderImagePipelineV2Role3BCE675E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "WorkerImageBuilderImagePipelineV2Role3BCE675E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role used as part of an Image Builder pipeline",
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/EC2InstanceProfileForImageBuilder",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/EC2InstanceProfileForImageBuilderECRContainerBuilds",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaA19D3FE4": {
+      "DependsOn": [
+        "WorkerImageBuilderImagePipelineV2UpdateLambdaRole648C1C2C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Environment": {
+          "Variables": {
+            "SSM_PATH": "/remote-swe/worker/ami-id",
+          },
+        },
+        "Handler": "image-builder-lambda-update-ssm.lambda_handler",
+        "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2UpdateLambdaRole648C1C2C",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.10",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaAllowInvokeTestMainStackWorkerImageBuilderImagePipelineV2ImageBuilderTopic99176B1DE13D9CE4": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2UpdateLambdaA19D3FE4",
+            "Arn",
+          ],
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaImageBuilderTopicD5FE83C9": {
+      "Properties": {
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2UpdateLambdaA19D3FE4",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": {
+          "Ref": "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaRole648C1C2C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "ssm:AddTagsToResource",
+                    "ssm:GetParameter",
+                    "ssm:GetParameterHistory",
+                    "ssm:GetParameters",
+                    "ssm:PutParameter",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/worker/ami-id",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "AmiSsmUpdateLambdaPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WorkerImageBuilderImagePipelineV2WorkerDependencies6FAC8E07": {
+      "Properties": {
+        "Data": {
+          "Fn::Join": [
+            "",
+            [
+              "name: MyComponentDocument
+description: This is an example component document
+schemaVersion: 1
+phases:
+  - name: build
+    steps:
+      - name: InstallUpdates
+        action: UpdateOS
+      - name: InstallDependencies
+        action: ExecuteBash
+        inputs:
+          commands:
+            - "#!/bin/bash
+
+              apt-get -o DPkg::Lock::Timeout=-1 update
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y docker.io python3-pip unzip
+
+              ln -s -f /usr/bin/pip3 /usr/bin/pip
+
+              ln -s -f /usr/bin/python3 /usr/bin/python
+
+
+              # Install Node.js
+
+              sudo -u ubuntu bash -c \\"curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash\\"
+
+              sudo -u ubuntu bash -c -i \\"nvm install 22\\"
+
+
+              # Install AWS CLI
+
+              curl \\"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\\" -o \\"awscliv2.zip\\"
+
+              unzip -q awscliv2.zip
+
+              sudo ./aws/install
+
+
+              # Install Fluent Bit
+
+              curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+
+
+              # Install GitHub CLI https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+
+              (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))   && sudo mkdir -p -m 755 /etc/apt/keyrings   && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg   && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg   && echo \\"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null   && sudo apt-get -o DPkg::Lock::Timeout=-1 update   && sudo apt-get -o DPkg::Lock::Timeout=-1 install gh -y
+
+
+              # Configure Git user for ubuntu
+
+              sudo -u ubuntu bash -c 'git config --global user.name \\"remote-swe-app[bot]\\"'
+
+              sudo -u ubuntu bash -c 'git config --global user.email \\"123456+remote-swe-app[bot]@users.noreply.github.com\\"'
+
+
+              # install uv
+
+              sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+
+              aws ssm get-parameter     --name /remote-swe/github/app-private-key     --query \\"Parameter.Value\\"     --output text > /opt/private-key.pem
+
+              curl -L \\"https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64\\" -o gh-token
+
+              chmod +x gh-token
+
+              mv gh-token /usr/bin
+
+              mkdir -p /opt/myapp && cd /opt/myapp
+
+              chown -R ubuntu:ubuntu /opt/myapp
+
+
+              # Install Playwright dependencies
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install-deps\\"
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install chromium\\"
+
+
+              # Configure GitHub CLI
+
+              sudo -u ubuntu bash -c \\"gh config set prompt disabled\\"
+
+
+              # Create setup script
+
+              mkdir -p /opt/scripts
+
+              cat << 'EOF' > /opt/scripts/start-app.sh
+
+              #!/bin/bash -l
+
+
+              # Clean up existing files
+
+              rm -rf ./{*,.*}
+
+
+              # Download source code from S3
+
+              aws s3 cp s3://",
+              {
+                "Ref": "WorkerSourceBucket539ACD15",
+              },
+              "/source/source.tar.gz ./source.tar.gz
+
+
+              # Extract and clean up
+
+              tar -xvzf source.tar.gz
+
+              rm -f source.tar.gz
+
+
+              # Install dependencies and build
+
+              npm ci
+
+              npm run build -w packages/agent-core
+
+
+              # Set up dynamic environment variables
+
+              TOKEN=$(curl -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+              export SLACK_CHANNEL_ID=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+
+              export SLACK_THREAD_TS=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+
+              export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query \\"Parameter.Value\\" --output text)
+
+              export GITHUB_PERSONAL_ACCESS_TOKEN=\\"\\"
+
+
+              # Start app
+
+              cd packages/worker
+
+              npx tsx src/main.ts
+
+              EOF
+
+
+              # Make script executable and set ownership
+
+              chmod +x /opt/scripts/start-app.sh
+
+              chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+
+              cat << EOF > /etc/systemd/system/myapp.service
+
+              [Unit]
+
+              Description=My Node.js Application
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              User=ubuntu
+
+              WorkingDirectory=/opt/myapp
+
+
+              ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
+
+              Restart=always
+
+              RestartSec=10
+
+              TimeoutStartSec=600
+
+              TimeoutStopSec=10s
+
+              StandardOutput=journal
+
+              StandardError=journal
+
+              SyslogIdentifier=myapp
+
+              # Static environment variables
+
+              Environment=AWS_REGION=us-east-1
+
+              Environment=EVENT_HTTP_ENDPOINT=https://",
+              {
+                "Fn::GetAtt": [
+                  "WorkerBusApi8460ABC0",
+                  "Dns.Http",
+                ],
+              },
+              "
+
+              Environment=GITHUB_APP_PRIVATE_KEY_PATH=/opt/private-key.pem
+
+              Environment=GITHUB_APP_ID=123456
+
+              Environment=GITHUB_APP_INSTALLATION_ID=9876543
+
+              Environment=TABLE_NAME=",
+              {
+                "Ref": "StorageHistory251A3AE8",
+              },
+              "
+
+              Environment=BUCKET_NAME=",
+              {
+                "Ref": "StorageImageBucket99BA9550",
+              },
+              "
+
+              Environment=BEDROCK_AWS_ACCOUNTS=
+
+              Environment=BEDROCK_AWS_ROLE_NAME=
+
+              # Environment=MODEL_OVERRIDE=nova-pro
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              # Configure Fluent Bit for CloudWatch Logs
+
+              mkdir -p /etc/fluent-bit
+
+
+              cat << EOF > /etc/fluent-bit/fluent-bit.conf
+
+              [SERVICE]
+
+              \\    Flush        5
+
+              \\    Daemon       Off
+
+              \\    Log_Level    info
+
+
+              [INPUT]
+
+              \\    Name         systemd
+
+              \\    Tag          myapp
+
+              \\    Systemd_Filter    _SYSTEMD_UNIT=myapp.service
+
+
+              [FILTER]
+
+              \\    Name         modify
+
+              \\    Match        myapp
+
+              \\    Remove_regex ^(?!MESSAGE).+$
+
+
+              [OUTPUT]
+
+              \\    Name         cloudwatch_logs
+
+              \\    Match        myapp
+
+              \\    region       us-east-1
+
+              \\    log_group_name    ",
+              {
+                "Ref": "WorkerLogGroup67ABCFFE",
+              },
+              "
+
+              \\    log_stream_name   log-\\\\\${WORKER_ID}
+
+              \\    auto_create_group false
+
+              EOF
+
+
+              # Create Fluent Bit startup script
+
+              cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
+
+              #!/bin/bash
+
+
+              TOKEN=$(curl -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+
+              exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+
+              EOF
+
+
+              # Make script executable
+
+              chmod +x /opt/scripts/start-fluent-bit.sh
+
+
+              # Create and configure Fluent Bit systemd service
+
+              cat << EOF > /etc/systemd/system/fluent-bit.service
+
+              [Unit]
+
+              Description=Fluent Bit
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              ExecStart=/opt/scripts/start-fluent-bit.sh
+
+              Restart=always
+
+              RestartSec=5
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              systemctl daemon-reload
+
+              systemctl enable fluent-bit
+
+              systemctl enable myapp
+
+              \\      "
+  - name: validate
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+  - name: test
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+",
+            ],
+          ],
+        },
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DWorkerDependencies",
+        "Platform": "Linux",
+        "Version": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderWorkerDependenciesVersion4BF2F39E",
+            "version",
+          ],
+        },
+      },
+      "Type": "AWS::ImageBuilder::Component",
+    },
+    "WorkerImageBuilderImageRecipeVersion51A6E2BF": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "ServiceTimeout": "20",
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4CE16D83A",
+            "Arn",
+          ],
+        },
+        "initialVersion": "0.0.0",
+        "key": {
+          "Fn::Join": [
+            "",
+            [
+              "{"parentImage":"{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}","subnetId":"",
+              {
+                "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+              },
+              "","securityGroups":["",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderSecurityGroup45E41ABB",
+                  "GroupId",
+                ],
+              },
+              ""],"amiIdSsmPath":"/remote-swe/worker/ami-id","amiIdSsmAccountId":"123456789012","amiIdSsmRegion":"us-east-1","ebsVolumeConfigurations":[{"deviceName":"/dev/sda1","ebs":{"encrypted":true,"volumeSize":50,"volumeType":"gp3"}}],"componentsVersion":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderWorkerDependenciesVersion4BF2F39E",
+                  "version",
+                ],
+              },
+              ""}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::ImageBuilderVersioning",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerImageBuilderRunPipelineA153A00F": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "WorkerImageBuilderRunPipelineCustomResourcePolicy37323E03",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"@aws-sdk/client-imagebuilder","action":"StartImagePipelineExecution","parameters":{"imagePipelineArn":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161",
+                  "Arn",
+                ],
+              },
+              ""},"physicalResourceId":{"id":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImageRecipeVersion51A6E2BF",
+                  "version",
+                ],
+              },
+              ""}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"@aws-sdk/client-imagebuilder","action":"StartImagePipelineExecution","parameters":{"imagePipelineArn":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161",
+                  "Arn",
+                ],
+              },
+              ""},"physicalResourceId":{"id":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImageRecipeVersion51A6E2BF",
+                  "version",
+                ],
+              },
+              ""}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerImageBuilderRunPipelineCustomResourcePolicy37323E03": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "imagebuilder:StartImagePipelineExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WorkerImageBuilderRunPipelineCustomResourcePolicy37323E03",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "WorkerImageBuilderSecurityGroup45E41ABB": {
+      "Properties": {
+        "GroupDescription": "TestMainStack/Worker/ImageBuilder/SecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "WorkerImageBuilderWorkerDependenciesVersion4BF2F39E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "ServiceTimeout": "20",
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4CE16D83A",
+            "Arn",
+          ],
+        },
+        "initialVersion": "0.0.0",
+        "key": {
+          "Fn::Join": [
+            "",
+            [
+              "name: MyComponentDocument
+description: This is an example component document
+schemaVersion: 1
+phases:
+  - name: build
+    steps:
+      - name: InstallUpdates
+        action: UpdateOS
+      - name: InstallDependencies
+        action: ExecuteBash
+        inputs:
+          commands:
+            - "#!/bin/bash
+
+              apt-get -o DPkg::Lock::Timeout=-1 update
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y docker.io python3-pip unzip
+
+              ln -s -f /usr/bin/pip3 /usr/bin/pip
+
+              ln -s -f /usr/bin/python3 /usr/bin/python
+
+
+              # Install Node.js
+
+              sudo -u ubuntu bash -c \\"curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash\\"
+
+              sudo -u ubuntu bash -c -i \\"nvm install 22\\"
+
+
+              # Install AWS CLI
+
+              curl \\"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\\" -o \\"awscliv2.zip\\"
+
+              unzip -q awscliv2.zip
+
+              sudo ./aws/install
+
+
+              # Install Fluent Bit
+
+              curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+
+
+              # Install GitHub CLI https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+
+              (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))   && sudo mkdir -p -m 755 /etc/apt/keyrings   && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg   && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg   && echo \\"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null   && sudo apt-get -o DPkg::Lock::Timeout=-1 update   && sudo apt-get -o DPkg::Lock::Timeout=-1 install gh -y
+
+
+              # Configure Git user for ubuntu
+
+              sudo -u ubuntu bash -c 'git config --global user.name \\"remote-swe-app[bot]\\"'
+
+              sudo -u ubuntu bash -c 'git config --global user.email \\"123456+remote-swe-app[bot]@users.noreply.github.com\\"'
+
+
+              # install uv
+
+              sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+
+              aws ssm get-parameter     --name /remote-swe/github/app-private-key     --query \\"Parameter.Value\\"     --output text > /opt/private-key.pem
+
+              curl -L \\"https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64\\" -o gh-token
+
+              chmod +x gh-token
+
+              mv gh-token /usr/bin
+
+              mkdir -p /opt/myapp && cd /opt/myapp
+
+              chown -R ubuntu:ubuntu /opt/myapp
+
+
+              # Install Playwright dependencies
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install-deps\\"
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install chromium\\"
+
+
+              # Configure GitHub CLI
+
+              sudo -u ubuntu bash -c \\"gh config set prompt disabled\\"
+
+
+              # Create setup script
+
+              mkdir -p /opt/scripts
+
+              cat << 'EOF' > /opt/scripts/start-app.sh
+
+              #!/bin/bash -l
+
+
+              # Clean up existing files
+
+              rm -rf ./{*,.*}
+
+
+              # Download source code from S3
+
+              aws s3 cp s3://",
+              {
+                "Ref": "WorkerSourceBucket539ACD15",
+              },
+              "/source/source.tar.gz ./source.tar.gz
+
+
+              # Extract and clean up
+
+              tar -xvzf source.tar.gz
+
+              rm -f source.tar.gz
+
+
+              # Install dependencies and build
+
+              npm ci
+
+              npm run build -w packages/agent-core
+
+
+              # Set up dynamic environment variables
+
+              TOKEN=$(curl -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+              export SLACK_CHANNEL_ID=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+
+              export SLACK_THREAD_TS=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+
+              export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query \\"Parameter.Value\\" --output text)
+
+              export GITHUB_PERSONAL_ACCESS_TOKEN=\\"\\"
+
+
+              # Start app
+
+              cd packages/worker
+
+              npx tsx src/main.ts
+
+              EOF
+
+
+              # Make script executable and set ownership
+
+              chmod +x /opt/scripts/start-app.sh
+
+              chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+
+              cat << EOF > /etc/systemd/system/myapp.service
+
+              [Unit]
+
+              Description=My Node.js Application
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              User=ubuntu
+
+              WorkingDirectory=/opt/myapp
+
+
+              ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
+
+              Restart=always
+
+              RestartSec=10
+
+              TimeoutStartSec=600
+
+              TimeoutStopSec=10s
+
+              StandardOutput=journal
+
+              StandardError=journal
+
+              SyslogIdentifier=myapp
+
+              # Static environment variables
+
+              Environment=AWS_REGION=us-east-1
+
+              Environment=EVENT_HTTP_ENDPOINT=https://",
+              {
+                "Fn::GetAtt": [
+                  "WorkerBusApi8460ABC0",
+                  "Dns.Http",
+                ],
+              },
+              "
+
+              Environment=GITHUB_APP_PRIVATE_KEY_PATH=/opt/private-key.pem
+
+              Environment=GITHUB_APP_ID=123456
+
+              Environment=GITHUB_APP_INSTALLATION_ID=9876543
+
+              Environment=TABLE_NAME=",
+              {
+                "Ref": "StorageHistory251A3AE8",
+              },
+              "
+
+              Environment=BUCKET_NAME=",
+              {
+                "Ref": "StorageImageBucket99BA9550",
+              },
+              "
+
+              Environment=BEDROCK_AWS_ACCOUNTS=
+
+              Environment=BEDROCK_AWS_ROLE_NAME=
+
+              # Environment=MODEL_OVERRIDE=nova-pro
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              # Configure Fluent Bit for CloudWatch Logs
+
+              mkdir -p /etc/fluent-bit
+
+
+              cat << EOF > /etc/fluent-bit/fluent-bit.conf
+
+              [SERVICE]
+
+              \\    Flush        5
+
+              \\    Daemon       Off
+
+              \\    Log_Level    info
+
+
+              [INPUT]
+
+              \\    Name         systemd
+
+              \\    Tag          myapp
+
+              \\    Systemd_Filter    _SYSTEMD_UNIT=myapp.service
+
+
+              [FILTER]
+
+              \\    Name         modify
+
+              \\    Match        myapp
+
+              \\    Remove_regex ^(?!MESSAGE).+$
+
+
+              [OUTPUT]
+
+              \\    Name         cloudwatch_logs
+
+              \\    Match        myapp
+
+              \\    region       us-east-1
+
+              \\    log_group_name    ",
+              {
+                "Ref": "WorkerLogGroup67ABCFFE",
+              },
+              "
+
+              \\    log_stream_name   log-\\\\\${WORKER_ID}
+
+              \\    auto_create_group false
+
+              EOF
+
+
+              # Create Fluent Bit startup script
+
+              cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
+
+              #!/bin/bash
+
+
+              TOKEN=$(curl -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -H \\"X-aws-ec2-metadata-token: $TOKEN\\" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+
+              exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+
+              EOF
+
+
+              # Make script executable
+
+              chmod +x /opt/scripts/start-fluent-bit.sh
+
+
+              # Create and configure Fluent Bit systemd service
+
+              cat << EOF > /etc/systemd/system/fluent-bit.service
+
+              [Unit]
+
+              Description=Fluent Bit
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              ExecStart=/opt/scripts/start-fluent-bit.sh
+
+              Restart=always
+
+              RestartSec=5
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              systemctl daemon-reload
+
+              systemctl enable fluent-bit
+
+              systemctl enable myapp
+
+              \\      "
+  - name: validate
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+  - name: test
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::ImageBuilderVersioning",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerLaunchTemplateCB68F8E3": {
+      "DependsOn": [
+        "WorkerRoleDefaultPolicyDBA0F4B7",
+        "WorkerRoleAAEB1603",
+      ],
+      "Properties": {
+        "LaunchTemplateData": {
+          "BlockDeviceMappings": [
+            {
+              "DeviceName": "/dev/sda1",
+              "Ebs": {
+                "Encrypted": true,
+                "VolumeSize": 50,
+                "VolumeType": "gp3",
+              },
+            },
+          ],
+          "IamInstanceProfile": {
+            "Arn": {
+              "Fn::GetAtt": [
+                "WorkerLaunchTemplateProfile0BE697D0",
+                "Arn",
+              ],
+            },
+          },
+          "ImageId": {
+            "Ref": "SsmParameterValueawsservicecanonicalubuntuserver2404stablecurrentamd64hvmebsgp3amiidC96584B6F00A464EAD1953AFF4B05118Parameter",
+          },
+          "InstanceType": "t3.large",
+          "MetadataOptions": {
+            "HttpTokens": "required",
+            "InstanceMetadataTags": "enabled",
+          },
+          "SecurityGroupIds": [
+            {
+              "Fn::GetAtt": [
+                "WorkerSecurityGroup431FFF64",
+                "GroupId",
+              ],
+            },
+          ],
+          "TagSpecifications": [
+            {
+              "ResourceType": "instance",
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "TestMainStack/Worker/LaunchTemplate",
+                },
+              ],
+            },
+            {
+              "ResourceType": "volume",
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "TestMainStack/Worker/LaunchTemplate",
+                },
+              ],
+            },
+          ],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Join": [
+                "",
+                [
+                  "#!/bin/bash
+apt-get -o DPkg::Lock::Timeout=-1 update
+apt-get -o DPkg::Lock::Timeout=-1 install -y docker.io python3-pip unzip
+ln -s -f /usr/bin/pip3 /usr/bin/pip
+ln -s -f /usr/bin/python3 /usr/bin/python
+
+# Install Node.js
+sudo -u ubuntu bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
+sudo -u ubuntu bash -c -i "nvm install 22"
+
+# Install AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -q awscliv2.zip
+sudo ./aws/install
+
+# Install Fluent Bit
+curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+
+# Install GitHub CLI https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+(type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))   && sudo mkdir -p -m 755 /etc/apt/keyrings   && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg   && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg   && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null   && sudo apt-get -o DPkg::Lock::Timeout=-1 update   && sudo apt-get -o DPkg::Lock::Timeout=-1 install gh -y
+
+# Configure Git user for ubuntu
+sudo -u ubuntu bash -c 'git config --global user.name "remote-swe-app[bot]"'
+sudo -u ubuntu bash -c 'git config --global user.email "123456+remote-swe-app[bot]@users.noreply.github.com"'
+
+# install uv
+sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+aws ssm get-parameter     --name /remote-swe/github/app-private-key     --query "Parameter.Value"     --output text > /opt/private-key.pem
+curl -L "https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64" -o gh-token
+chmod +x gh-token
+mv gh-token /usr/bin
+mkdir -p /opt/myapp && cd /opt/myapp
+chown -R ubuntu:ubuntu /opt/myapp
+
+# Install Playwright dependencies
+sudo -u ubuntu bash -i -c "npx playwright install-deps"
+sudo -u ubuntu bash -i -c "npx playwright install chromium"
+
+# Configure GitHub CLI
+sudo -u ubuntu bash -c "gh config set prompt disabled"
+
+# Create setup script
+mkdir -p /opt/scripts
+cat << 'EOF' > /opt/scripts/start-app.sh
+#!/bin/bash -l
+
+# Clean up existing files
+rm -rf ./{*,.*}
+
+# Download source code from S3
+aws s3 cp s3://",
+                  {
+                    "Ref": "WorkerSourceBucket539ACD15",
+                  },
+                  "/source/source.tar.gz ./source.tar.gz
+
+# Extract and clean up
+tar -xvzf source.tar.gz
+rm -f source.tar.gz
+
+# Install dependencies and build
+npm ci
+npm run build -w packages/agent-core
+
+# Set up dynamic environment variables
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
+export WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+export SLACK_CHANNEL_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+export SLACK_THREAD_TS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query "Parameter.Value" --output text)
+export GITHUB_PERSONAL_ACCESS_TOKEN=""
+
+# Start app
+cd packages/worker
+npx tsx src/main.ts
+EOF
+
+# Make script executable and set ownership
+chmod +x /opt/scripts/start-app.sh
+chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+cat << EOF > /etc/systemd/system/myapp.service
+[Unit]
+Description=My Node.js Application
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/myapp
+
+ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
+Restart=always
+RestartSec=10
+TimeoutStartSec=600
+TimeoutStopSec=10s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=myapp
+# Static environment variables
+Environment=AWS_REGION=us-east-1
+Environment=EVENT_HTTP_ENDPOINT=https://",
+                  {
+                    "Fn::GetAtt": [
+                      "WorkerBusApi8460ABC0",
+                      "Dns.Http",
+                    ],
+                  },
+                  "
+Environment=GITHUB_APP_PRIVATE_KEY_PATH=/opt/private-key.pem
+Environment=GITHUB_APP_ID=123456
+Environment=GITHUB_APP_INSTALLATION_ID=9876543
+Environment=TABLE_NAME=",
+                  {
+                    "Ref": "StorageHistory251A3AE8",
+                  },
+                  "
+Environment=BUCKET_NAME=",
+                  {
+                    "Ref": "StorageImageBucket99BA9550",
+                  },
+                  "
+Environment=BEDROCK_AWS_ACCOUNTS=
+Environment=BEDROCK_AWS_ROLE_NAME=
+# Environment=MODEL_OVERRIDE=nova-pro
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Configure Fluent Bit for CloudWatch Logs
+mkdir -p /etc/fluent-bit
+
+cat << EOF > /etc/fluent-bit/fluent-bit.conf
+[SERVICE]
+    Flush        5
+    Daemon       Off
+    Log_Level    info
+
+[INPUT]
+    Name         systemd
+    Tag          myapp
+    Systemd_Filter    _SYSTEMD_UNIT=myapp.service
+
+[FILTER]
+    Name         modify
+    Match        myapp
+    Remove_regex ^(?!MESSAGE).+$
+
+[OUTPUT]
+    Name         cloudwatch_logs
+    Match        myapp
+    region       us-east-1
+    log_group_name    ",
+                  {
+                    "Ref": "WorkerLogGroup67ABCFFE",
+                  },
+                  "
+    log_stream_name   log-\\\${WORKER_ID}
+    auto_create_group false
+EOF
+
+# Create Fluent Bit startup script
+cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
+#!/bin/bash
+
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
+export WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+EOF
+
+# Make script executable
+chmod +x /opt/scripts/start-fluent-bit.sh
+
+# Create and configure Fluent Bit systemd service
+cat << EOF > /etc/systemd/system/fluent-bit.service
+[Unit]
+Description=Fluent Bit
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/scripts/start-fluent-bit.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable fluent-bit
+systemctl enable myapp
+      
+systemctl start fluent-bit
+systemctl start myapp",
+                ],
+              ],
+            },
+          },
+        },
+        "TagSpecifications": [
+          {
+            "ResourceType": "launch-template",
+            "Tags": [
+              {
+                "Key": "Name",
+                "Value": "TestMainStack/Worker/LaunchTemplate",
+              },
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::EC2::LaunchTemplate",
+    },
+    "WorkerLaunchTemplateProfile0BE697D0": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "WorkerRoleAAEB1603",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "WorkerLogGroup67ABCFFE": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "RetentionInDays": 14,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerRoleAAEB1603": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WorkerRoleDefaultPolicyDBA0F4B7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "bedrock:InvokeModel",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "ec2:StopInstances",
+                "ec2:TerminateInstances",
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:ARN": "\${ec2:SourceInstanceARN}",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "WorkerSourceBucket539ACD15",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WorkerSourceBucket539ACD15",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "StorageHistory251A3AE8",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:Abort*",
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageImageBucket99BA9550",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageImageBucket99BA9550",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "ssm:DescribeParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+                "ssm:GetParameters",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/github/app-private-key",
+                "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/slack/bot-token",
+              ],
+            },
+            {
+              "Action": "appsync:EventSubscribe",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:appsync:us-east-1:123456789012:apis/",
+                    {
+                      "Fn::GetAtt": [
+                        "WorkerBusApi8460ABC0",
+                        "ApiId",
+                      ],
+                    },
+                    "/channelNamespace/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "appsync:EventConnect",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:appsync:us-east-1:123456789012:apis/",
+                    {
+                      "Fn::GetAtt": [
+                        "WorkerBusApi8460ABC0",
+                        "ApiId",
+                      ],
+                    },
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "WorkerLogGroup67ABCFFE",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WorkerRoleDefaultPolicyDBA0F4B7",
+        "Roles": [
+          {
+            "Ref": "WorkerRoleAAEB1603",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "WorkerSecurityGroup431FFF64": {
+      "Properties": {
+        "GroupDescription": "TestMainStack/Worker/SecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "WorkerSourceBucket539ACD15": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "AccessLogD598EBE9",
+          },
+          "LogFilePrefix": "s3AccessLog/SourceBucket/",
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+          {
+            "Key": "aws-cdk:cr-owned:e79d49de",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerSourceBucketAutoDeleteObjectsCustomResource0570D571": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "WorkerSourceBucketPolicyA1100157",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "WorkerSourceBucket539ACD15",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerSourceBucketPolicyA1100157": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "WorkerSourceBucket539ACD15",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false",
+                },
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "WorkerSourceBucket539ACD15",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WorkerSourceBucket539ACD15",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:PutBucketPolicy",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "WorkerSourceBucket539ACD15",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WorkerSourceBucket539ACD15",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "WorkerSourceDeploymentAwsCliLayer8B16D5B0": {
+      "Properties": {
+        "Content": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Description": "/opt/awscli/aws",
+      },
+      "Type": "AWS::Lambda::LayerVersion",
+    },
+    "WorkerSourceDeploymentCustomResource0630C689": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "DestinationBucketName": {
+          "Ref": "WorkerSourceBucket539ACD15",
+        },
+        "OutputObjectKeys": true,
+        "Prune": true,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+            "Arn",
+          ],
+        },
+        "SourceBucketNames": [
+          "cdk-hnb659fds-assets-123456789012-us-east-1",
+        ],
+        "SourceObjectKeys": [
+          "REDACTED",
+        ],
+      },
+      "Type": "Custom::CDKBucketDeployment",
+      "UpdateReplacePolicy": "Delete",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
   },
 }
-`
+`;
