@@ -2,6 +2,8 @@
 
 This is an example implementation of a fully autonomous software development AI agent. The agent works in its own dedicated development environment, freeing you from being tied to your laptop!
 
+*日本語版のREADMEは[こちら](README_ja.md)をご覧ください。*
+
 ![Concept](./docs/imgs/concept.png)
 
 ## Key Features
