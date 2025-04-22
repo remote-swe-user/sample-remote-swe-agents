@@ -27,34 +27,34 @@ Some of the agent sessions by Remote SWE agents:
 
 You can view all the public pull requests created by the agent [here](https://github.com/search?q=is%3Apr+author%3Aremote-swe-user&type=pullrequests). All of the commits pushed from the GitHub user is written by the agent autonomously.
 
-## Installation Steps
+## インストール手順
 
-Since this project is fully self-hosted, the setup process requires several manual operations such as configuring a Slack app.
-Please carefully follow all the steps below. If you encounter any issues, we're ready to help you via GitHub issues!
+このプロジェクトは完全にセルフホスト型のため、セットアッププロセスにはSlackアプリの設定など、いくつかの手動操作が必要です。
+以下の手順に慎重に従ってください。問題が発生した場合は、GitHubのissueを通じてサポートを提供します！
 
-### Prerequisites
+### 前提条件
 
-- Node.js (version 20 or higher)
-- npm (version 9 or higher)
+- Node.js（バージョン20以上）
+- npm（バージョン9以上）
 - AWS CLI
-- AWS IAM profile with appropriate permissions
+- 適切な権限を持つAWS IAMプロファイル
 - Docker
-- Bedrock Claude Sonnet 3.7 model is [enabled on](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access) us-west-2 regions
-- Slack Workspace
-- GitHub Account
+- Bedrock Claude Sonnet 3.7モデルが[us-west-2リージョンで有効化](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access)されていること
+- Slackワークスペース
+- GitHubアカウント
 
-### 1. Clone the Repository
+### 1. リポジトリのクローン
 
 ```bash
 git clone https://github.com/aws-samples/remote-swe-agents.git
 cd remote-swe-agents
 ```
 
-After completing this step, proceed to Step 2 to set up the required parameters and deploy the CDK stack.
+この手順を完了したら、ステップ2に進んで必要なパラメータを設定し、CDKスタックをデプロイします。
 
-### 2. Run CDK Deploy
+### 2. CDKのデプロイ
 
-Before running cdk deploy, you need to create placeholder SSM parameters that will later be populated with actual values:
+cdk deployを実行する前に、後で実際の値が入力されるプレースホルダーのSSMパラメータを作成する必要があります：
 
 ```bash
 aws ssm put-parameter \
@@ -73,7 +73,7 @@ aws ssm put-parameter \
     --type String
 ```
 
-Then you can run cdk deploy. Note that the above parameter names are referenced in `bin/cdk.ts`.
+その後、cdk deployを実行できます。上記のパラメータ名は`bin/cdk.ts`で参照されています。
 
 ```bash
 cd cdk && npm ci
@@ -81,35 +81,35 @@ npx cdk bootstrap
 npx cdk deploy
 ```
 
-Deployment usually takes about 5 minutes. After the deployment, you should see the endpoint of your Slack Bolt app. Make note of the `SlackBoltEndpointUrl` from the CDK output as you'll need it in the next step.
+デプロイには通常約5分かかります。デプロイ後、Slack Boltアプリのエンドポイントが表示されます。次のステップで必要になるため、CDK出力の`SlackBoltEndpointUrl`をメモしておいてください。
 
-After completing this step, proceed to Step 3 to set up your Slack application.
+この手順を完了したら、ステップ3に進んでSlackアプリケーションを設定します。
 
-### 3. Slack App Setup
+### 3. Slackアプリのセットアップ
 
-Now, you need to set up a Slack App to control agents through the Slack interface.
+ここでは、Slackインターフェースを通じてエージェントを制御するためのSlackアプリを設定する必要があります。
 
-#### Create a Slack App
+#### Slackアプリの作成
 
-1. Go to [Slack API Dashboard](https://api.slack.com/apps)
-2. Click "Create New App"
-3. Choose "From manifest"
-4. Use the provided Slack app manifest YAML file: [manifest.json](./resources/slack-app-manifest.json)
-   - Please replace the endpoint URL (`https://redacted.execute-api.us-east-1.amazonaws.com`) with your actual URL
-   - You can find your actual URL in the CDK deployment outputs as `SlackBoltEndpointUrl`
-5. Please make note of the following values:
-   - Signing Secret (found in Basic Information)
-   - Bot Token (found in OAuth & Permissions, after installing to your workspace)
+1. [Slack APIダッシュボード](https://api.slack.com/apps)にアクセス
+2. 「Create New App」（新しいアプリを作成）をクリック
+3. 「From manifest」（マニフェストから）を選択
+4. 提供されているSlackアプリのマニフェストYAMLファイルを使用：[manifest.json](./resources/slack-app-manifest.json)
+   - エンドポイントURL（`https://redacted.execute-api.us-east-1.amazonaws.com`）を実際のURLに置き換えてください
+   - 実際のURLはCDKデプロイメント出力の`SlackBoltEndpointUrl`で確認できます
+5. 以下の値を必ずメモしておいてください：
+   - 署名シークレット（Basic Informationで確認可能）
+   - ボットトークン（OAuth & Permissions内、ワークスペースにインストール後に確認可能）
 
-Please also refer to this document for more details: [Create and configure apps with manifests](https://api.slack.com/reference/manifests)
+詳細については、こちらのドキュメントを参照してください：[マニフェストでアプリを作成および設定する](https://api.slack.com/reference/manifests)
 
 > [!NOTE]
-> If you're using a shared (rather than personal) Slack workspace, consider setting the `ADMIN_USER_ID_LIST` environment variable (see below) to control agent access. Without this restriction, anyone in the workspace can access the agents and potentially your GitHub content.
+> 共有（個人ではなく）Slackワークスペースを使用している場合は、エージェントへのアクセスを制御するために`ADMIN_USER_ID_LIST`環境変数（以下を参照）の設定を検討してください。この制限がないと、ワークスペース内の誰でもエージェントにアクセスでき、潜在的にあなたのGitHubコンテンツにもアクセスできてしまいます。
 
 
-#### Create SSM Parameters for Slack Secrets
+#### SlackシークレットのSSMパラメータ作成
 
-After creating a Slack app, register the secrets in your AWS account by the following command:
+Slackアプリを作成した後、以下のコマンドでAWSアカウントにシークレットを登録します：
 
 ```bash
 aws ssm put-parameter \
@@ -125,26 +125,26 @@ aws ssm put-parameter \
     --overwrite
 ```
 
-Replace `your-slack-bot-token` and `your-slack-signing-secret` with the actual values you obtained in the previous step. The parameters will be referenced from CDK.
+`your-slack-bot-token`と`your-slack-signing-secret`を、前のステップで取得した実際の値に置き換えてください。これらのパラメータはCDKから参照されます。
 
-After completing this step, proceed to Step 4 to set up GitHub integration. You will need to choose between using a Personal Access Token (PAT) or GitHub App for authentication.
+この手順を完了したら、ステップ4に進んでGitHub連携を設定します。認証にはPersonal Access Token（PAT）またはGitHub Appのいずれかを選択する必要があります。
 
 
-### 4. GitHub Integration
+### 4. GitHub連携
 
-To interact with GitHub, you need to setup GitHub integration. You have two options for GitHub integration:
+GitHubと連携するには、GitHub連携のセットアップが必要です。GitHub連携には2つの選択肢があります：
 
-**Which option should you choose?**
-- **Personal Access Token (Option 1)**: Choose this for personal use or quick setup. It's simpler but tied to a single user account.
-- **GitHub App (Option 2)**: Recommended for team environments or organizational use. Provides more granular permissions and isn't tied to a personal account.
+**どちらのオプションを選ぶべきか？**
+- **Personal Access Token（オプション1）**：個人利用や迅速なセットアップに適しています。より単純ですが、単一のユーザーアカウントに紐づけられます。
+- **GitHub App（オプション2）**：チーム環境や組織での利用に推奨されます。より詳細な権限を提供し、個人アカウントに紐づけられません。
 
-#### Option 1: Personal Access Token (PAT)
+#### オプション1：Personal Access Token (PAT)
 
-1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
-2. Generate a new token (classic) with appropriate repository access
-   * Required scopes: `repo, workflow, read:org`
-   * The more scopes you permit, the more various tasks agents can perform
-3. Create an SSM Parameter with the generated token string
+1. [GitHub設定 > 開発者設定 > 個人アクセストークン](https://github.com/settings/tokens)にアクセス
+2. 適切なリポジトリアクセス権を持つ新しいトークン（クラシック）を生成
+   * 必要なスコープ：`repo, workflow, read:org`
+   * 許可するスコープが多いほど、エージェントがさまざまなタスクを実行できるようになります
+3. 生成したトークン文字列でSSMパラメータを作成
    ```bash
    aws ssm put-parameter \
       --name /remote-swe/github/personal-access-token \
@@ -154,35 +154,35 @@ To interact with GitHub, you need to setup GitHub integration. You have two opti
    ```
 
 > [!NOTE]
-> If you want to share the system with multiple developers, it is recommended to create a [machine user account for GitHub](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#user-accounts) instead of using your own account's PAT, to prevent misuse of personal privileges.
+> システムを複数の開発者と共有したい場合、個人の権限の悪用を防ぐために、自分のアカウントのPATを使用するのではなく、[GitHubのマシンユーザーアカウント](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#user-accounts)を作成することをお勧めします。
 
-#### Option 2: GitHub App
+#### オプション2：GitHub App
 
-1. Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps)
-2. Create a new GitHub App
-3. Configure permissions and generate a private key
-   - the required permissions: Actions(RW), Issues(RW), Pull requests(RW), Contents(RW)
-4. Create a parameter of [AWS Systems Manager Parameter Store](https://console.aws.amazon.com/systems-manager/parameters) for the private key.
-   - This parameter will be referenced from CDK (the default parameter name: `/remote-swe/github/app-private-key`).
-5. Install the app to a GitHub organization you want to use.
-   - After installing the app, you can find the installation id from the URL (`https://github.com/organizations/<YOUR_ORG>/settings/installations/<INSTALLATION_ID>`)
-6. Please take a note of the below values:
-   - App ID (e.g. 12345678)
-   - Installation ID (e.g. 12345678)
-   - Private key parameter name in AWS Systems Manager Parameter Store
+1. [GitHub設定 > 開発者設定 > GitHub Apps](https://github.com/settings/apps)にアクセス
+2. 新しいGitHub Appを作成
+3. 権限を設定し、秘密鍵を生成
+   - 必要な権限：Actions(RW)、Issues(RW)、Pull requests(RW)、Contents(RW)
+4. 秘密鍵用の[AWS Systems Manager パラメータストア](https://console.aws.amazon.com/systems-manager/parameters)のパラメータを作成
+   - このパラメータはCDKから参照されます（デフォルトのパラメータ名：`/remote-swe/github/app-private-key`）
+5. 使用したいGitHub組織にアプリをインストール
+   - アプリをインストールした後、URL（`https://github.com/organizations/<YOUR_ORG>/settings/installations/<INSTALLATION_ID>`）からインストールIDを確認できます
+6. 以下の値をメモしておいてください：
+   - アプリID（例：12345678）
+   - インストールID（例：12345678）
+   - AWS Systems Manager パラメータストア内の秘密鍵パラメータ名
 
 > [!NOTE]
-> Currently when using with GitHub App, you can only use repositories under a single organization (i.e. app installation).
+> 現在、GitHub Appを使用する場合、単一の組織（つまり、アプリのインストール）の下のリポジトリのみを使用できます。
 
-After completing this step, proceed to Step 5 to set up environment variables based on your chosen GitHub integration method.
+この手順を完了したら、ステップ5に進んで選択したGitHub連携方法に基づいて環境変数を設定します。
 
-### 5. Environment Variables Setup
+### 5. 環境変数のセットアップ
 
-The following environment variables are required for deployment:
+デプロイメントには以下の環境変数が必要です：
 
-#### For GitHub App Integration:
+#### GitHub App連携の場合：
 
-When you use GitHub App integration (option 2 above), you must set the below two environment variables when deploying CDK.
+GitHub App連携（上記のオプション2）を使用する場合、CDKをデプロイする際に以下の2つの環境変数を設定する必要があります。
 
 ```sh
 export GITHUB_APP_ID=your-github-app-id
@@ -190,37 +190,37 @@ export GITHUB_INSTALLATION_ID=your-github-installation-id
 ```
 
 > [!NOTE]
-> We use environment variables here to inject configuration from GitHub Actions variables. If this isn't convenient for you, you can simply hard-code the values in [`bin/cdk.ts`](cdk/bin/cdk.ts).
+> ここでは、GitHub Actions変数から設定を注入するために環境変数を使用しています。これが便利でない場合は、[`bin/cdk.ts`](cdk/bin/cdk.ts)内の値を直接ハードコードすることもできます。
 
-#### (optional) Restrict access to the system from the Slack
+#### （オプション）Slackからのシステムアクセス制限
 
-To control which members in the Slack workspace can access the agents, you can provide a comma-separated list of Slack User IDs in the following environment variable:
+Slackワークスペース内のどのメンバーがエージェントにアクセスできるかを制御するには、以下の環境変数でSlackユーザーIDのカンマ区切りリストを提供できます：
 
-To get a member's Slack user ID, [follow these instructions](https://www.google.com/search?q=copy+member+id+slack).
+メンバーのSlackユーザーIDを取得するには、[これらの指示](https://www.google.com/search?q=copy+member+id+slack)に従ってください。
 
 ```sh
 export ADMIN_USER_ID_LIST=U123ABC456,U789XYZ012
 ```
 
-All users except those with specified user IDs will receive an Unauthorized error when attempting to access the Slack app.
+指定されたユーザーID以外のすべてのユーザーは、Slackアプリへのアクセスを試みると「Unauthorized」エラーを受け取ります。
 
 > [!NOTE]
-> To grant a user access to the app, mention the app with an `approve_user` message followed by mentions of the users, e.g., `@remote-swe approve_user @Alice @Bob @Carol`
+> ユーザーにアプリへのアクセス権を付与するには、`approve_user`メッセージとユーザーのメンションをアプリでメンションします。例：`@remote-swe approve_user @Alice @Bob @Carol`
 
-After completing this step, proceed to Step 6 to finalize the deployment with your configuration.
+この手順を完了したら、ステップ6に進んで設定でデプロイメントを完了します。
 
-### 6. Deploy CDK again with configuration variables
+### 6. 設定変数を使用してCDKを再度デプロイ
 
-After the above setup is complete, run `cdk deploy` again.
+上記のセットアップが完了したら、`cdk deploy`を再度実行します。
 
 ```bash
 cd cdk
 npx cdk deploy
 ```
 
-Congratulations! Setup is now complete. You can now access all features from Slack. Simply mention the Slack app and start assigning tasks to the agents!
+おめでとうございます！セットアップは完了しました。これでSlackからすべての機能にアクセスできます。Slackアプリをメンションするだけで、エージェントにタスクを割り当て始めることができます！
 
-For tips on how to effectively use the agents, refer to the "Useful Tips" section below.
+エージェントを効果的に使用するためのヒントについては、以下の「有用なヒント」セクションを参照してください。
 
 ## Useful Tips
 
