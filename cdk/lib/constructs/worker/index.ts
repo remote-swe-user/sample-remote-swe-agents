@@ -187,15 +187,63 @@ mkdir -p /opt/scripts
 cat << 'EOF' > /opt/scripts/start-app.sh
 #!/bin/bash -l
 
-# Clean up existing files
-rm -rf ./{*,.*}
+# Set S3 bucket name
+S3_BUCKET_NAME="${sourceBucket.bucketName}"
+ETAG_FILE="/opt/myapp/.source_etag"
+SOURCE_EXTRACTED_DIR="/opt/myapp/extracted_source"
+SOURCE_TAR_NAME="source.tar.gz"
 
-# Download source code from S3
-aws s3 cp s3://${sourceBucket.bucketName}/source/source.tar.gz ./source.tar.gz
+# Get current ETag from S3
+CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
 
-# Extract and clean up
-tar -xvzf source.tar.gz
-rm -f source.tar.gz
+# Check if we can use cached source code
+if [ -f "$ETAG_FILE" ] && [ -d "$SOURCE_EXTRACTED_DIR" ]; then
+  CACHED_ETAG=$(cat $ETAG_FILE)
+  
+  if [ "$CURRENT_ETAG" == "$CACHED_ETAG" ]; then
+    echo "ETag matches. Using cached source files."
+    # Copy cached source files to current directory
+    cp -r $SOURCE_EXTRACTED_DIR/{*,.*} ./ 2>/dev/null || true
+  else
+    echo "ETag different. Downloading fresh source files."
+    # Perform full download and extraction
+    # Clean up existing files
+    rm -rf ./{*,.*} 2>/dev/null || true
+    
+    # Download source code from S3
+    aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
+    
+    # Extract and clean up
+    tar -xvzf $SOURCE_TAR_NAME
+    rm -f $SOURCE_TAR_NAME
+    
+    # Cache the extracted files
+    rm -rf "$SOURCE_EXTRACTED_DIR" 2>/dev/null || true
+    mkdir -p "$SOURCE_EXTRACTED_DIR"
+    cp -r ./{*,.*} "$SOURCE_EXTRACTED_DIR"/ 2>/dev/null || true
+    
+    # Save the ETag
+    echo "$CURRENT_ETAG" > "$ETAG_FILE"
+  fi
+else
+  echo "No cached source files. Downloading fresh source files."
+  # Clean up existing files
+  rm -rf ./{*,.*} 2>/dev/null || true
+  
+  # Download source code from S3
+  aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
+  
+  # Extract and clean up
+  tar -xvzf $SOURCE_TAR_NAME
+  rm -f $SOURCE_TAR_NAME
+  
+  # Create cache directory and copy extracted files
+  mkdir -p "$SOURCE_EXTRACTED_DIR"
+  cp -r ./{*,.*} "$SOURCE_EXTRACTED_DIR"/ 2>/dev/null || true
+  
+  # Save the ETag
+  echo "$CURRENT_ETAG" > "$ETAG_FILE"
+fi
 
 # Install dependencies and build
 npm ci
