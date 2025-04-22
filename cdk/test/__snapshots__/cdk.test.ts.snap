@@ -2114,6 +2114,11 @@ phases:
               SOURCE_TAR_NAME=\\"source.tar.gz\\"
 
 
+              # Enable strict mode for safety
+
+              set -e
+
+
               # Get current ETag from S3
 
               CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
@@ -2131,9 +2136,17 @@ phases:
 
               \\    echo \\"ETag matches. Using cached source files.\\"
 
+              \\    # Clean up existing files first
+
+              \\    rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
+
               \\    # Copy cached source files to current directory
 
-              \\    cp -r $SOURCE_EXTRACTED_DIR/{*,.*} ./ 2>/dev/null || true
+              \\    cp -r $SOURCE_EXTRACTED_DIR/* ./
+
+              \\    # Copy hidden files separately to avoid errors with . and ..
+
+              \\    find $SOURCE_EXTRACTED_DIR -name \\".*\\" -type f -exec cp {} ./ ;
 
               \\  else
 
@@ -2143,7 +2156,7 @@ phases:
 
               \\    # Clean up existing files
 
-              \\    rm -rf ./{*,.*} 2>/dev/null || true
+              \\    rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
 
               \\   \\ 
 
@@ -2163,15 +2176,23 @@ phases:
 
               \\    # Cache the extracted files
 
-              \\    rm -rf \\"$SOURCE_EXTRACTED_DIR\\" 2>/dev/null || true
+              \\    rm -rf \\"$SOURCE_EXTRACTED_DIR\\"
 
               \\    mkdir -p \\"$SOURCE_EXTRACTED_DIR\\"
 
-              \\    cp -r ./{*,.*} \\"$SOURCE_EXTRACTED_DIR\\"/ 2>/dev/null || true
+              \\   \\ 
+
+              \\    # Copy files to cache directory
+
+              \\    cp -r ./* \\"$SOURCE_EXTRACTED_DIR\\"/\\ 
+
+              \\    # Copy hidden files separately to avoid errors
+
+              \\    find . -maxdepth 1 -name \\".*\\" -type f -exec cp {} \\"$SOURCE_EXTRACTED_DIR\\"/ ;
 
               \\   \\ 
 
-              \\    # Save the ETag
+              \\    # Save the ETag only after successful operations
 
               \\    echo \\"$CURRENT_ETAG\\" > \\"$ETAG_FILE\\"
 
@@ -2183,7 +2204,7 @@ phases:
 
               \\  # Clean up existing files
 
-              \\  rm -rf ./{*,.*} 2>/dev/null || true
+              \\  rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
 
               \\ \\ 
 
@@ -2205,11 +2226,19 @@ phases:
 
               \\  mkdir -p \\"$SOURCE_EXTRACTED_DIR\\"
 
-              \\  cp -r ./{*,.*} \\"$SOURCE_EXTRACTED_DIR\\"/ 2>/dev/null || true
+              \\ \\ 
+
+              \\  # Copy files to cache directory
+
+              \\  cp -r ./* \\"$SOURCE_EXTRACTED_DIR\\"/\\ 
+
+              \\  # Copy hidden files separately to avoid errors
+
+              \\  find . -maxdepth 1 -name \\".*\\" -type f -exec cp {} \\"$SOURCE_EXTRACTED_DIR\\"/ ;
 
               \\ \\ 
 
-              \\  # Save the ETag
+              \\  # Save the ETag only after successful operations
 
               \\  echo \\"$CURRENT_ETAG\\" > \\"$ETAG_FILE\\"
 
@@ -2759,6 +2788,11 @@ phases:
               SOURCE_TAR_NAME=\\"source.tar.gz\\"
 
 
+              # Enable strict mode for safety
+
+              set -e
+
+
               # Get current ETag from S3
 
               CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
@@ -2776,9 +2810,17 @@ phases:
 
               \\    echo \\"ETag matches. Using cached source files.\\"
 
+              \\    # Clean up existing files first
+
+              \\    rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
+
               \\    # Copy cached source files to current directory
 
-              \\    cp -r $SOURCE_EXTRACTED_DIR/{*,.*} ./ 2>/dev/null || true
+              \\    cp -r $SOURCE_EXTRACTED_DIR/* ./
+
+              \\    # Copy hidden files separately to avoid errors with . and ..
+
+              \\    find $SOURCE_EXTRACTED_DIR -name \\".*\\" -type f -exec cp {} ./ ;
 
               \\  else
 
@@ -2788,7 +2830,7 @@ phases:
 
               \\    # Clean up existing files
 
-              \\    rm -rf ./{*,.*} 2>/dev/null || true
+              \\    rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
 
               \\   \\ 
 
@@ -2808,15 +2850,23 @@ phases:
 
               \\    # Cache the extracted files
 
-              \\    rm -rf \\"$SOURCE_EXTRACTED_DIR\\" 2>/dev/null || true
+              \\    rm -rf \\"$SOURCE_EXTRACTED_DIR\\"
 
               \\    mkdir -p \\"$SOURCE_EXTRACTED_DIR\\"
 
-              \\    cp -r ./{*,.*} \\"$SOURCE_EXTRACTED_DIR\\"/ 2>/dev/null || true
+              \\   \\ 
+
+              \\    # Copy files to cache directory
+
+              \\    cp -r ./* \\"$SOURCE_EXTRACTED_DIR\\"/\\ 
+
+              \\    # Copy hidden files separately to avoid errors
+
+              \\    find . -maxdepth 1 -name \\".*\\" -type f -exec cp {} \\"$SOURCE_EXTRACTED_DIR\\"/ ;
 
               \\   \\ 
 
-              \\    # Save the ETag
+              \\    # Save the ETag only after successful operations
 
               \\    echo \\"$CURRENT_ETAG\\" > \\"$ETAG_FILE\\"
 
@@ -2828,7 +2878,7 @@ phases:
 
               \\  # Clean up existing files
 
-              \\  rm -rf ./{*,.*} 2>/dev/null || true
+              \\  rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
 
               \\ \\ 
 
@@ -2850,11 +2900,19 @@ phases:
 
               \\  mkdir -p \\"$SOURCE_EXTRACTED_DIR\\"
 
-              \\  cp -r ./{*,.*} \\"$SOURCE_EXTRACTED_DIR\\"/ 2>/dev/null || true
+              \\ \\ 
+
+              \\  # Copy files to cache directory
+
+              \\  cp -r ./* \\"$SOURCE_EXTRACTED_DIR\\"/\\ 
+
+              \\  # Copy hidden files separately to avoid errors
+
+              \\  find . -maxdepth 1 -name \\".*\\" -type f -exec cp {} \\"$SOURCE_EXTRACTED_DIR\\"/ ;
 
               \\ \\ 
 
-              \\  # Save the ETag
+              \\  # Save the ETag only after successful operations
 
               \\  echo \\"$CURRENT_ETAG\\" > \\"$ETAG_FILE\\"
 
@@ -3251,6 +3309,9 @@ ETAG_FILE="/opt/myapp/.source_etag"
 SOURCE_EXTRACTED_DIR="/opt/myapp/extracted_source"
 SOURCE_TAR_NAME="source.tar.gz"
 
+# Enable strict mode for safety
+set -e
+
 # Get current ETag from S3
 CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
 
@@ -3260,13 +3321,17 @@ if [ -f "$ETAG_FILE" ] && [ -d "$SOURCE_EXTRACTED_DIR" ]; then
   
   if [ "$CURRENT_ETAG" == "$CACHED_ETAG" ]; then
     echo "ETag matches. Using cached source files."
+    # Clean up existing files first
+    rm -rf ./{*,.*} 2>/dev/null || echo "Cleaning up existing files"
     # Copy cached source files to current directory
-    cp -r $SOURCE_EXTRACTED_DIR/{*,.*} ./ 2>/dev/null || true
+    cp -r $SOURCE_EXTRACTED_DIR/* ./
+    # Copy hidden files separately to avoid errors with . and ..
+    find $SOURCE_EXTRACTED_DIR -name ".*" -type f -exec cp {} ./ ;
   else
     echo "ETag different. Downloading fresh source files."
     # Perform full download and extraction
     # Clean up existing files
-    rm -rf ./{*,.*} 2>/dev/null || true
+    rm -rf ./{*,.*} 2>/dev/null || echo "Cleaning up existing files"
     
     # Download source code from S3
     aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
@@ -3276,17 +3341,21 @@ if [ -f "$ETAG_FILE" ] && [ -d "$SOURCE_EXTRACTED_DIR" ]; then
     rm -f $SOURCE_TAR_NAME
     
     # Cache the extracted files
-    rm -rf "$SOURCE_EXTRACTED_DIR" 2>/dev/null || true
+    rm -rf "$SOURCE_EXTRACTED_DIR"
     mkdir -p "$SOURCE_EXTRACTED_DIR"
-    cp -r ./{*,.*} "$SOURCE_EXTRACTED_DIR"/ 2>/dev/null || true
     
-    # Save the ETag
+    # Copy files to cache directory
+    cp -r ./* "$SOURCE_EXTRACTED_DIR"/ 
+    # Copy hidden files separately to avoid errors
+    find . -maxdepth 1 -name ".*" -type f -exec cp {} "$SOURCE_EXTRACTED_DIR"/ ;
+    
+    # Save the ETag only after successful operations
     echo "$CURRENT_ETAG" > "$ETAG_FILE"
   fi
 else
   echo "No cached source files. Downloading fresh source files."
   # Clean up existing files
-  rm -rf ./{*,.*} 2>/dev/null || true
+  rm -rf ./{*,.*} 2>/dev/null || echo "Cleaning up existing files"
   
   # Download source code from S3
   aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
@@ -3297,9 +3366,13 @@ else
   
   # Create cache directory and copy extracted files
   mkdir -p "$SOURCE_EXTRACTED_DIR"
-  cp -r ./{*,.*} "$SOURCE_EXTRACTED_DIR"/ 2>/dev/null || true
   
-  # Save the ETag
+  # Copy files to cache directory
+  cp -r ./* "$SOURCE_EXTRACTED_DIR"/ 
+  # Copy hidden files separately to avoid errors
+  find . -maxdepth 1 -name ".*" -type f -exec cp {} "$SOURCE_EXTRACTED_DIR"/ ;
+  
+  # Save the ETag only after successful operations
   echo "$CURRENT_ETAG" > "$ETAG_FILE"
 fi
 
