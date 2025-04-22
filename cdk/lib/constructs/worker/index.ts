@@ -200,27 +200,66 @@ sudo -u ubuntu bash -c "gh config set prompt disabled"
 # Create setup script
 mkdir -p /opt/scripts
 cat << 'EOF' > /opt/scripts/start-app.sh
-#!/bin/bash -l
+#!/bin/bash
 
-# Clean up existing files
-rm -rf ./{*,.*}
+# Set S3 bucket name
+S3_BUCKET_NAME="${sourceBucket.bucketName}"
+ETAG_FILE="/opt/myapp/.source_etag"
+SOURCE_TAR_NAME="source.tar.gz"
 
-# Download source code from S3
-aws s3 cp s3://${sourceBucket.bucketName}/source/source.tar.gz ./source.tar.gz
+# Enable strict mode for safety
+set -e
 
-# Extract and clean up
-tar -xvzf source.tar.gz
-rm -f source.tar.gz
+# Function to download and extract fresh source files
+download_fresh_files() {
+  echo "Downloading fresh source files."
+  # Clean up existing files
+  rm -rf ./{*,.*} 2>/dev/null || echo "Cleaning up existing files"
+  
+  # Download source code from S3
+  aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
+  
+  # Extract and clean up
+  tar -xvzf $SOURCE_TAR_NAME
+  rm -f $SOURCE_TAR_NAME
+  
+  # Install dependencies and build
+  npm ci
+  npm run build -w packages/agent-core
 
-# Install dependencies and build
-npm ci
-npm run build -w packages/agent-core
+  # Save the ETag
+  echo "$CURRENT_ETAG" > "$ETAG_FILE"
+}
+
+# Get current ETag from S3
+CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
+
+# Check if we can use cached source code
+if [ -f "$ETAG_FILE" ]; then
+  CACHED_ETAG=$(cat $ETAG_FILE)
+  
+  if [ "$CURRENT_ETAG" == "$CACHED_ETAG" ]; then
+    echo "ETag matches. Using existing source files."
+    # Files are already in place, no need to do anything
+  else
+    # ETag doesn't match, need to download fresh files
+    download_fresh_files
+  fi
+else
+  # No ETAG file, need to download fresh files
+  download_fresh_files
+fi
+
+if [ "$NO_START" == "true" ]; then
+  echo "NO_START=true is passed. Existing..."
+  exit 0
+fi
 
 # Set up dynamic environment variables
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
-export WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
-export SLACK_CHANNEL_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
-export SLACK_THREAD_TS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
+export WORKER_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+export SLACK_CHANNEL_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+export SLACK_THREAD_TS=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
 export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name ${props.slackBotTokenParameter.parameterName} --query "Parameter.Value" --output text)
 export GITHUB_PERSONAL_ACCESS_TOKEN=${props.githubPersonalAccessTokenParameter ? `$(aws ssm get-parameter --name ${props.githubPersonalAccessTokenParameter.parameterName} --query \"Parameter.Value\" --output text)` : '""'}
 
@@ -232,6 +271,9 @@ EOF
 # Make script executable and set ownership
 chmod +x /opt/scripts/start-app.sh
 chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+# cache worker files
+sudo -u ubuntu bash -i -c "NO_START=true /opt/scripts/start-app.sh"
 
 cat << EOF > /etc/systemd/system/myapp.service
 [Unit]
@@ -302,8 +344,8 @@ EOF
 cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
 #!/bin/bash
 
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
-export WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
+export WORKER_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
 
 exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
 EOF
