@@ -17,7 +17,7 @@ type SessionItem = {
   PK: string;
   SK: string;
   workerId: string;
-  createdAt: string;
+  createdAt: number;
   LSI1: string;
 };
 
@@ -100,8 +100,8 @@ export const getTokenUsage = async (workerId: string) => {
 };
 
 export const saveSessionInfo = async (workerId: string) => {
-  const now = new Date();
-  const timestamp = String(Date.now()).padStart(20, '0');
+  const now = Date.now();
+  const timestamp = String(now).padStart(15, '0');
 
   await ddb.send(
     new PutCommand({
@@ -110,7 +110,7 @@ export const saveSessionInfo = async (workerId: string) => {
         PK: 'sessions',
         SK: workerId,
         workerId,
-        createdAt: now.toISOString(),
+        createdAt: now,
         LSI1: timestamp,
       } satisfies SessionItem,
     })
