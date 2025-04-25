@@ -18,6 +18,7 @@ type SessionItem = {
   SK: string;
   workerId: string;
   createdAt: string;
+  LSI1: string;
 };
 
 export const saveConversationHistory = async (
@@ -100,14 +101,17 @@ export const getTokenUsage = async (workerId: string) => {
 
 export const saveSessionInfo = async (workerId: string) => {
   const now = new Date();
+  const timestamp = String(Date.now()).padStart(20, '0');
+
   await ddb.send(
     new PutCommand({
       TableName,
       Item: {
         PK: 'sessions',
-        SK: `${String(Date.now()).padStart(20, '0')}`,
+        SK: workerId,
         workerId,
         createdAt: now.toISOString(),
+        LSI1: timestamp,
       } satisfies SessionItem,
     })
   );
