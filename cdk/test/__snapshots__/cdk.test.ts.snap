@@ -2111,7 +2111,9 @@ exports.handler = async function (event, context) {
       ],
       "Properties": {
         "Description": "Example Infrastructure Configuration for Image Builder",
-        "InstanceProfileName": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DProfile",
+        "InstanceProfileName": {
+          "Ref": "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C",
+        },
         "InstanceTypes": [
           "t3.medium",
           "m5.large",
@@ -2137,7 +2139,6 @@ exports.handler = async function (event, context) {
     },
     "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C": {
       "Properties": {
-        "InstanceProfileName": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DProfile",
         "Roles": [
           {
             "Ref": "WorkerImageBuilderImagePipelineV2Role3BCE675E",
