@@ -25,22 +25,31 @@ const getApp = () => {
   return app;
 };
 
-// URL detection regex pattern - matches http/https URLs
-const urlPattern = /https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-
 /**
- * Processes message text to ensure URLs are properly formatted for Slack linking
- * Converts URLs to Slack's explicit link format <url>
+ * Processes message text to ensure URLs are properly linked in Slack messages
+ * Adds a space before http:// or https:// if it's not preceded by a whitespace or newline
  */
 const processMessageForLinks = (message: string): string => {
-  // Ensure URLs are wrapped in Slack's link syntax <url>
-  return message.replace(urlPattern, (url) => {
-    // Only wrap if not already wrapped
-    if (url.startsWith('<') && url.endsWith('>')) {
-      return url;
+  // Look for http:// or https://
+  const parts = message.split(/(https?:\/\/)/g);
+  let result = '';
+
+  for (let i = 0; i < parts.length; i++) {
+    // If this part is http:// or https://
+    if (parts[i] === 'http://' || parts[i] === 'https://') {
+      // If not at the beginning and previous character isn't whitespace or newline
+      if (i > 0 && result.length > 0) {
+        const lastChar = result[result.length - 1];
+        if (lastChar !== ' ' && lastChar !== '\n' && lastChar !== '\t') {
+          // Add space before the URL protocol
+          result += ' ';
+        }
+      }
     }
-    return `<${url}>`;
-  });
+    result += parts[i];
+  }
+
+  return result;
 };
 
 export const sendMessageToSlack = async (message: string, progress = false) => {
