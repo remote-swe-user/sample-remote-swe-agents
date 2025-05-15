@@ -14,7 +14,7 @@ export const reportProgressTool: ToolDefinition<z.infer<typeof inputSchema>> = {
   name,
   handler: async (input: z.infer<typeof inputSchema>) => {
     if (!input.message) return 'No message was sent.';
-    await sendMessageToSlack(input.message, true);
+    await sendMessageToSlack(input.message);
     return 'Successfully sent a message.';
   },
   schema: inputSchema,

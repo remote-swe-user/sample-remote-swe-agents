@@ -36,19 +36,6 @@ export const sendMessageToSlack = async (message: string, progress = false) => {
     // limit to 40000 chars https://api.slack.com/methods/chat.postMessage#truncating
     text: message.slice(0, 40000),
     blocks: [
-      ...(progress
-        ? [
-            {
-              type: 'context',
-              elements: [
-                {
-                  type: 'mrkdwn',
-                  text: 'progress',
-                },
-              ],
-            },
-          ]
-        : []),
       {
         type: 'markdown',
         // limit to 12000 chars https://api.slack.com/reference/block-kit/blocks#markdown
@@ -58,7 +45,7 @@ export const sendMessageToSlack = async (message: string, progress = false) => {
   });
 };
 
-export const sendFileToSlack = async (imagePath: string, message: string, progress = false) => {
+export const sendFileToSlack = async (imagePath: string, message: string) => {
   if (disableSlack) {
     console.log(`[Slack] Image: ${imagePath}, Message: ${message}`);
     return;
