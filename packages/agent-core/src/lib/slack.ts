@@ -35,12 +35,16 @@ export const sendMessageToSlack = async (message: string, progress = false) => {
     thread_ts: threadTs,
     // limit to 40000 chars https://api.slack.com/methods/chat.postMessage#truncating
     text: message.slice(0, 40000),
+    parse: 'full',
     blocks: [
       {
-        type: 'markdown',
-        // limit to 12000 chars https://api.slack.com/reference/block-kit/blocks#markdown
-        text: message.slice(0, 12000),
-      } as any,
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          // limit to 12000 chars https://api.slack.com/reference/block-kit/blocks#markdown
+          text: message.slice(0, 12000),
+        },
+      },
     ],
   });
 };
