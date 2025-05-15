@@ -25,22 +25,47 @@ const getApp = () => {
   return app;
 };
 
+// URL detection regex pattern - matches http/https URLs
+const urlPattern = /https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+
+/**
+ * Processes message text to ensure URLs are properly formatted for Slack linking
+ * Converts URLs to Slack's explicit link format <url>
+ */
+const processMessageForLinks = (message: string): string => {
+  // Ensure URLs are wrapped in Slack's link syntax <url>
+  return message.replace(urlPattern, (url) => {
+    // Only wrap if not already wrapped
+    if (url.startsWith('<') && url.endsWith('>')) {
+      return url;
+    }
+    return `<${url}>`;
+  });
+};
+
 export const sendMessageToSlack = async (message: string, progress = false) => {
   if (disableSlack) {
     console.log(`[Slack] ${message}`);
     return;
   }
+
+  // Process message to ensure proper URL linking
+  const processedMessage = processMessageForLinks(message);
+
   await getApp().client.chat.postMessage({
     channel: channelID,
     thread_ts: threadTs,
     // limit to 40000 chars https://api.slack.com/methods/chat.postMessage#truncating
-    text: message.slice(0, 40000),
+    text: processedMessage.slice(0, 40000),
     blocks: [
       {
-        type: 'markdown',
-        // limit to 12000 chars https://api.slack.com/reference/block-kit/blocks#markdown
-        text: message.slice(0, 12000),
-      } as any,
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          // limit to 12000 chars https://api.slack.com/reference/block-kit/blocks#markdown
+          text: processedMessage.slice(0, 12000),
+        },
+      },
     ],
   });
 };
@@ -54,10 +79,13 @@ export const sendFileToSlack = async (imagePath: string, message: string) => {
   const fileName = imagePath.split('/').pop() || 'image';
   const imageBuffer = readFileSync(imagePath);
 
+  // Process message to ensure proper URL linking
+  const processedMessage = processMessageForLinks(message);
+
   const result = await getApp().client.filesUploadV2({
     channel_id: channelID,
     thread_ts: threadTs,
-    initial_comment: message,
+    initial_comment: processedMessage,
     filename: fileName,
     file: imageBuffer,
   });
