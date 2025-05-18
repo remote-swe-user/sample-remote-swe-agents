@@ -28,6 +28,7 @@ import {
   reportProgressTool,
   sendImageTool,
 } from '@remote-swe-agents/agent-core/tools';
+import { findRepositoryKnowledge } from './lib/knowledge';
 import { readMetadata, renderToolResult, sendMessageToSlack, setKillTimer } from '@remote-swe-agents/agent-core/lib';
 import { CancellationToken } from '../common/cancellation-token';
 
@@ -153,17 +154,11 @@ Users will primarily request software engineering assistance including bug fixes
       if (repo && repo.repoDirectory) {
         const repoDirectory = repo.repoDirectory as string;
 
-        // Check for knowledge files
-        const knowledgeFiles = ['AmazonQ.md', '.clinerules', 'CLAUDE.md', '.cursorrules'];
-        for (const fileName of knowledgeFiles) {
-          const filePath = join(repoDirectory, fileName);
-          if (existsSync(filePath)) {
-            // Read knowledge file content
-            const knowledgeContent = readFileSync(filePath, 'utf-8');
-            console.log(`Found knowledge file: ${fileName}`);
-            systemPrompt = `${baseSystemPrompt}\n## Repository Knowledge\n${knowledgeContent}`;
-            break;
-          }
+        // Find repository knowledge files
+        const { content: knowledgeContent, found: foundKnowledgeFile } = findRepositoryKnowledge(repoDirectory);
+
+        if (foundKnowledgeFile) {
+          systemPrompt = `${baseSystemPrompt}\n## Repository Knowledge\n${knowledgeContent}`;
         }
       }
     } catch (error) {
