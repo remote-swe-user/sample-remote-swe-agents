@@ -6,6 +6,9 @@ import { join } from 'path';
  */
 export const knowledgeFilePatterns = [
   // Original supported files
+  'AmazonQ.md',
+  '.clinerules',
+  'CLAUDE.md',
   '.cursorrules',
   // Additional files
   '.github/copilot-instructions.md',
