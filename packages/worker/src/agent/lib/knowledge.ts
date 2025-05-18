@@ -22,14 +22,14 @@ export const knowledgeFilePatterns = [
  */
 export function findMdFiles(dir: string): string[] {
   const results: string[] = [];
-  
+
   try {
     const files = readdirSync(dir);
-    
+
     for (const file of files) {
       const filePath = join(dir, file);
       const stat = statSync(filePath);
-      
+
       if (stat.isDirectory()) {
         // Recursive call for subdirectories
         results.push(...findMdFiles(filePath));
@@ -41,7 +41,7 @@ export function findMdFiles(dir: string): string[] {
   } catch (error) {
     console.error(`Error reading directory ${dir}:`, error);
   }
-  
+
   return results;
 }
 
@@ -50,13 +50,13 @@ export function findMdFiles(dir: string): string[] {
  * @param repoDirectory Repository directory path
  * @returns Object containing knowledge content and whether any files were found
  */
-export function findRepositoryKnowledge(repoDirectory: string): { content: string, found: boolean } {
+export function findRepositoryKnowledge(repoDirectory: string): { content: string; found: boolean } {
   let knowledgeContent = '';
   let foundKnowledgeFile = false;
-  
+
   for (const item of knowledgeFilePatterns) {
     const itemPath = join(repoDirectory, item);
-    
+
     // Check if path exists
     if (existsSync(itemPath)) {
       // If item ends with '/', it's a directory - process all .md files
@@ -89,9 +89,9 @@ export function findRepositoryKnowledge(repoDirectory: string): { content: strin
       }
     }
   }
-  
+
   return {
     content: knowledgeContent,
-    found: foundKnowledgeFile
+    found: foundKnowledgeFile,
   };
 }

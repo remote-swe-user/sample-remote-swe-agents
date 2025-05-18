@@ -156,7 +156,7 @@ Users will primarily request software engineering assistance including bug fixes
 
         // Find repository knowledge files
         const { content: knowledgeContent, found: foundKnowledgeFile } = findRepositoryKnowledge(repoDirectory);
-        
+
         if (foundKnowledgeFile) {
           systemPrompt = `${baseSystemPrompt}\n## Repository Knowledge\n${knowledgeContent}`;
         }
