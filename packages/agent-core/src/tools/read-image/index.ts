@@ -16,10 +16,8 @@ export const readImageTool: ToolDefinition<z.infer<typeof inputSchema>> = {
     await fs.access(input.imagePath);
 
     // Convert image to webp format using sharp
-    const webpBuffer = await sharp(input.imagePath)
-      .webp()
-      .toBuffer();
-    
+    const webpBuffer = await sharp(input.imagePath).webp().toBuffer();
+
     // Convert to Base64
     const base64Data = webpBuffer.toString('base64');
     const dataURI = `data:image/webp;base64,${base64Data}`;
