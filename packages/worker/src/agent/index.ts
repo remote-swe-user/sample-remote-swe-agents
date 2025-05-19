@@ -24,6 +24,7 @@ import {
   DefaultWorkingDirectory,
   fileEditTool,
   getPRCommentsTool,
+  readImageTool,
   replyPRCommentTool,
   reportProgressTool,
   sendImageTool,
@@ -177,6 +178,7 @@ Users will primarily request software engineering assistance including bug fixes
     sendImageTool,
     getPRCommentsTool,
     replyPRCommentTool,
+    readImageTool,
   ];
   const toolConfig: ConverseCommandInput['toolConfig'] = {
     tools: [
