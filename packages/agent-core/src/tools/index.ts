@@ -6,3 +6,4 @@ export * from './repo';
 export * from './report-progress';
 export * from './send-image';
 export * from './think';
+export * from './read-image';
