@@ -1,4 +1,4 @@
-import { Tool } from '@aws-sdk/client-bedrock-runtime';
+import { Tool, ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { ZodSchema } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
@@ -7,7 +7,7 @@ export type ToolDefinition<Input> = {
    * Name of the tool. This is the identifier of the tool for the agent.
    */
   readonly name: string;
-  readonly handler: (input: Input) => Promise<string>;
+  readonly handler: (input: Input) => Promise<string | ToolResultContentBlock[]>;
   readonly schema: ZodSchema;
   readonly toolSpec: () => Promise<NonNullable<Tool['toolSpec']>>;
 };
