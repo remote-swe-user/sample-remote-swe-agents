@@ -15,14 +15,14 @@ export const readImageTool: ToolDefinition<z.infer<typeof inputSchema>> = {
     try {
       // Check if file exists
       await fs.access(input.imagePath);
-      
+
       // Read file as binary
       const imageBuffer = await fs.readFile(input.imagePath);
-      
+
       // Get file extension to determine MIME type
       const ext = extname(input.imagePath).toLowerCase().substring(1);
       let mimeType = 'image/jpeg'; // Default MIME type
-      
+
       // Set proper MIME type based on file extension
       switch (ext) {
         case 'png':
@@ -44,18 +44,18 @@ export const readImageTool: ToolDefinition<z.infer<typeof inputSchema>> = {
         default:
           throw new Error(`Unsupported image format: ${ext}`);
       }
-      
+
       // Convert to Base64
       const base64Data = imageBuffer.toString('base64');
       const dataURI = `data:${mimeType};base64,${base64Data}`;
-      
+
       // Return JSON stringified result with image data
       return JSON.stringify({
         image: {
           type: 'image',
           data: dataURI,
           alt: `Image from ${input.imagePath}`,
-        }
+        },
       });
     } catch (error) {
       if (error instanceof Error) {
