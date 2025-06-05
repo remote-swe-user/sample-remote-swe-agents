@@ -1,15 +1,16 @@
 import { CfnOutput, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { CfnStage, HttpApi } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { ITableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Architecture, DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { WorkerBus } from '../worker/bus';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { IStringParameter } from 'aws-cdk-lib/aws-ssm';
+import { IStringParameter, StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { join } from 'path';
+import { readFileSync } from 'fs';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
+import { Storage } from '../storage';
 
 export interface SlackBoltProps {
   signingSecretParameter: IStringParameter;
@@ -17,10 +18,10 @@ export interface SlackBoltProps {
   launchTemplateId: string;
   subnetIdListForWorkers: string;
   workerBus: WorkerBus;
-  storageTable: ITableV2;
-  storageBucket: IBucket;
+  storage: Storage;
   adminUserIdList?: string;
   workerLogGroupName: string;
+  workerAmiIdParameter: IStringParameter;
 }
 
 export class SlackBolt extends Construct {
@@ -28,61 +29,56 @@ export class SlackBolt extends Construct {
     super(scope, id);
 
     const { botTokenParameter, signingSecretParameter } = props;
-    const asyncHandler = new NodejsFunction(this, 'AsyncHandler', {
-      entry: '../slack-bolt-app/src/async-handler.ts',
-      runtime: Runtime.NODEJS_20_X,
-      depsLockFilePath: '../slack-bolt-app/package-lock.json',
+    const asyncHandler = new DockerImageFunction(this, 'AsyncHandler', {
+      code: DockerImageCode.fromImageAsset('..', {
+        file: join('docker', 'slack-bolt-app.Dockerfile'),
+        exclude: readFileSync(join('..', 'docker', 'slack-bolt-app.Dockerfile.dockerignore'))
+          .toString()
+          .split('\n'),
+        cmd: ['async-handler.handler'],
+        platform: Platform.LINUX_AMD64,
+      }),
       timeout: Duration.minutes(10),
       environment: {
-        LAUNCH_TEMPLATE_ID: props.launchTemplateId,
+        WORKER_LAUNCH_TEMPLATE_ID: props.launchTemplateId,
+        WORKER_AMI_PARAMETER_NAME: props.workerAmiIdParameter.parameterName,
         SUBNET_ID_LIST: props.subnetIdListForWorkers,
         BOT_TOKEN: botTokenParameter.stringValue,
         EVENT_HTTP_ENDPOINT: props.workerBus.httpEndpoint,
-        TABLE_NAME: props.storageTable.tableName,
-        BUCKET_NAME: props.storageBucket.bucketName,
+        TABLE_NAME: props.storage.table.tableName,
+        BUCKET_NAME: props.storage.bucket.bucketName,
       },
-      architecture: Architecture.ARM_64,
-      bundling: {
-        commandHooks: {
-          beforeBundling: (i, o) => [`cd ${i} && npm install`],
-          afterBundling: (i, o) => [],
-          beforeInstall: (i, o) => [],
-        },
-        bundleAwsSDK: true,
-      },
+      architecture: Architecture.X86_64,
     });
-    props.storageTable.grantReadWriteData(asyncHandler);
-    props.storageBucket.grantReadWrite(asyncHandler);
+    props.workerAmiIdParameter.grantRead(asyncHandler);
+    props.storage.table.grantReadWriteData(asyncHandler);
+    props.storage.bucket.grantReadWrite(asyncHandler);
     props.workerBus.api.grantPublish(asyncHandler);
 
-    const handler = new NodejsFunction(this, 'Handler', {
-      entry: '../slack-bolt-app/src/lambda.ts',
-      runtime: Runtime.NODEJS_20_X,
-      depsLockFilePath: '../slack-bolt-app/package-lock.json',
+    const handler = new DockerImageFunction(this, 'Handler', {
+      code: DockerImageCode.fromImageAsset('..', {
+        file: join('docker', 'slack-bolt-app.Dockerfile'),
+        exclude: readFileSync(join('..', 'docker', 'slack-bolt-app.Dockerfile.dockerignore'))
+          .toString()
+          .split('\n'),
+        platform: Platform.LINUX_AMD64,
+      }),
       timeout: Duration.seconds(29),
       environment: {
         SIGNING_SECRET: signingSecretParameter.stringValue,
         BOT_TOKEN: botTokenParameter.stringValue,
         ASYNC_LAMBDA_NAME: asyncHandler.functionName,
         EVENT_HTTP_ENDPOINT: props.workerBus.httpEndpoint,
-        TABLE_NAME: props.storageTable.tableName,
-        BUCKET_NAME: props.storageBucket.bucketName,
+        TABLE_NAME: props.storage.table.tableName,
+        BUCKET_NAME: props.storage.bucket.bucketName,
         LOG_GROUP_NAME: props.workerLogGroupName,
         ...(props.adminUserIdList ? { ADMIN_USER_ID_LIST: props.adminUserIdList } : {}),
       },
-      architecture: Architecture.ARM_64,
-      bundling: {
-        commandHooks: {
-          beforeBundling: (i, o) => [`cd ${i} && npm install`],
-          afterBundling: (i, o) => [],
-          beforeInstall: (i, o) => [],
-        },
-        bundleAwsSDK: true,
-      },
+      architecture: Architecture.X86_64,
     });
     asyncHandler.grantInvoke(handler);
-    props.storageTable.grantReadWriteData(handler);
-    props.storageBucket.grantReadWrite(handler);
+    props.storage.table.grantReadWriteData(handler);
+    props.storage.bucket.grantReadWrite(handler);
     props.workerBus.api.grantPublish(handler);
 
     const api = new HttpApi(this, 'Api', {

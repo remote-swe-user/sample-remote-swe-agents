@@ -1,6 +1,6 @@
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { AttributeType, Billing, TableV2 } from 'aws-cdk-lib/aws-dynamodb';
-import { BlockPublicAccess, Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { AttributeType, Billing, TableV2, ProjectionType } from 'aws-cdk-lib/aws-dynamodb';
+import { BlockPublicAccess, Bucket, HttpMethods, IBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
 export interface StorageProps {
@@ -20,6 +20,13 @@ export class Storage extends Construct {
       billing: Billing.onDemand(),
       timeToLiveAttribute: 'TTL',
       removalPolicy: RemovalPolicy.DESTROY,
+      localSecondaryIndexes: [
+        {
+          indexName: 'LSI1',
+          sortKey: { name: 'LSI1', type: AttributeType.STRING },
+          projectionType: ProjectionType.ALL,
+        },
+      ],
     });
 
     const bucket = new Bucket(this, 'ImageBucket', {
@@ -29,6 +36,14 @@ export class Storage extends Construct {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       serverAccessLogsBucket: props.accessLogBucket,
       serverAccessLogsPrefix: 's3AccessLog/ImageBucket/',
+      cors: [
+        {
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+          allowedMethods: [HttpMethods.GET, HttpMethods.HEAD, HttpMethods.PUT, HttpMethods.POST],
+          maxAge: 3000,
+        },
+      ],
     });
 
     this.table = table;

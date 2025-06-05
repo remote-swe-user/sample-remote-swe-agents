@@ -6,16 +6,26 @@ import { SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Storage } from './constructs/storage';
 import { EC2GarbageCollector } from './constructs/ec2-gc';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { BlockPublicAccess, Bucket } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { RemovalPolicy } from 'aws-cdk-lib';
+import { EdgeFunction } from './constructs/cf-lambda-furl-service/edge-function';
+import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { HostedZone } from 'aws-cdk-lib/aws-route53';
+import { Auth } from './constructs/auth';
+import { AsyncJob } from './constructs/async-job';
+import { Webapp } from './constructs/webapp';
 
 export interface MainStackProps extends cdk.StackProps {
-  slack: {
+  readonly signPayloadHandler: EdgeFunction;
+  readonly domainName?: string;
+  readonly sharedCertificate?: ICertificate;
+
+  readonly slack: {
     botTokenParameterName: string;
     signingSecretParameterName: string;
     adminUserIdList?: string;
   };
-  github:
+  readonly github:
     | {
         appId: string;
         installationId: string;
@@ -24,10 +34,11 @@ export interface MainStackProps extends cdk.StackProps {
     | {
         personalAccessTokenParameterName: string;
       };
-  loadBalancing?: {
+  readonly loadBalancing?: {
     awsAccounts: string[];
     roleName: string;
   };
+  readonly workerAmiIdParameterName: string;
 }
 
 export class MainStack extends cdk.Stack {
@@ -44,11 +55,23 @@ export class MainStack extends cdk.Stack {
       forceDynamicReference: true,
     });
 
+    const workerAmiIdParameter = StringParameter.fromStringParameterAttributes(this, 'WorkerAmiId', {
+      parameterName: props.workerAmiIdParameterName,
+      forceDynamicReference: true,
+    });
+
+    const hostedZone = props.domainName
+      ? HostedZone.fromLookup(this, 'HostedZone', {
+          domainName: props.domainName,
+        })
+      : undefined;
+
     const accessLogBucket = new Bucket(this, 'AccessLog', {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       enforceSSL: true,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      objectOwnership: ObjectOwnership.OBJECT_WRITER,
     });
 
     const vpc = new Vpc(this, 'VpcV2', {
@@ -56,7 +79,7 @@ export class MainStack extends cdk.Stack {
         {
           // We use public subnets for worker EC2 instances. Here are the reasons:
           //   1. to remove NAT Gateway cost
-          //   2. to avoid from IP address restriction from external services
+          //   2. to avoid IP-address-based throttling/filtering from external services
           // All the instances are securely protected by security groups without any inbound rules.
           subnetType: SubnetType.PUBLIC,
           name: 'Public',
@@ -92,6 +115,7 @@ export class MainStack extends cdk.Stack {
           }),
       loadBalancing: props.loadBalancing,
       accessLogBucket,
+      amiIdParameterName: workerAmiIdParameter.parameterName,
     });
 
     new SlackBolt(this, 'SlackBolt', {
@@ -100,12 +124,42 @@ export class MainStack extends cdk.Stack {
       launchTemplateId: worker.launchTemplate.launchTemplateId!,
       subnetIdListForWorkers: vpc.publicSubnets.map((s) => s.subnetId).join(','),
       workerBus: worker.bus,
-      storageTable: storage.table,
-      storageBucket: storage.bucket,
+      storage,
       adminUserIdList: props.slack.adminUserIdList,
       workerLogGroupName: worker.logGroup.logGroupName,
+      workerAmiIdParameter,
     });
 
-    new EC2GarbageCollector(this, 'EC2GarbageCollector');
+    new EC2GarbageCollector(this, 'EC2GarbageCollector', {
+      expirationInDays: 1,
+      imageRecipeName: worker.imageBuilder.imageRecipeName,
+    });
+
+    const auth = new Auth(this, 'Auth', {
+      hostedZone,
+      sharedCertificate: props.sharedCertificate,
+    });
+
+    worker.bus.addUserPoolProvider(auth.userPool);
+
+    const asyncJob = new AsyncJob(this, 'AsyncJob', { storage });
+
+    const webapp = new Webapp(this, 'Webapp', {
+      storage,
+      hostedZone,
+      certificate: props.sharedCertificate,
+      signPayloadHandler: props.signPayloadHandler,
+      accessLogBucket,
+      auth,
+      launchTemplateId: worker.launchTemplate.launchTemplateId!,
+      subnetIdListForWorkers: vpc.publicSubnets.map((s) => s.subnetId).join(','),
+      workerBus: worker.bus,
+      asyncJob,
+      workerAmiIdParameter,
+    });
+
+    new cdk.CfnOutput(this, 'FrontendDomainName', {
+      value: webapp.baseUrl,
+    });
   }
 }

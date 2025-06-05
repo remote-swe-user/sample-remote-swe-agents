@@ -1,0 +1,45 @@
+name: MyComponentDocument
+description: This is an example component document
+schemaVersion: 1.0
+
+phases:
+  - name: build
+    steps:
+      - name: InstallUpdates
+        action: UpdateOS
+      - name: InstallDependencies
+        action: ExecuteBash
+        inputs:
+          # commands will be replaced from CDK
+          commands: 
+            - dummy
+  - name: validate
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+  - name: test
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
