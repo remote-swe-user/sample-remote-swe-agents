@@ -1,9 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Snapshot test 1`] = `
+exports[`Snapshot test: MainStack 1`] = `
 {
   "Description": "Remote SWE Agents stack (uksb-lv52f92xel)",
   "Outputs": {
+    "AsyncJobHandlerArnCA46B385": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AsyncJobHandler438266BD",
+          "Arn",
+        ],
+      },
+    },
+    "AuthUserPoolClientId8216BF9A": {
+      "Value": {
+        "Ref": "AuthUserPoolClientC635291F",
+      },
+    },
+    "AuthUserPoolIdC0605E59": {
+      "Value": {
+        "Ref": "AuthUserPool8115E87F",
+      },
+    },
+    "FrontendDomainName": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "Webapp107041BD",
+                "DomainName",
+              ],
+            },
+          ],
+        ],
+      },
+    },
     "SlackBoltEndpointUrl89D2B06F": {
       "Value": {
         "Fn::GetAtt": [
@@ -22,21 +56,8 @@ exports[`Snapshot test 1`] = `
         "Ref": "StorageHistory251A3AE8",
       },
     },
-    "WorkerBusEventEndpointCC51309B": {
-      "Value": {
-        "Fn::Join": [
-          "",
-          [
-            "https://",
-            {
-              "Fn::GetAtt": [
-                "WorkerBusApi8460ABC0",
-                "Dns.Http",
-              ],
-            },
-          ],
-        ],
-      },
+    "WorkerImageBuilderRemoveCachedAmiCommand8BE1DBE6": {
+      "Value": "aws ssm delete-parameter --name /remote-swe/worker/ami-id --region us-east-1",
     },
   },
   "Parameters": {
@@ -45,12 +66,64 @@ exports[`Snapshot test 1`] = `
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
-    "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61x8664C96584B6F00A464EAD1953AFF4B05118Parameter": {
-      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64",
+    "SsmParameterValueawsservicecanonicalubuntuserver2404stablecurrentamd64hvmebsgp3amiidC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id",
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
     },
   },
   "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
     "AccessLogAutoDeleteObjectsCustomResource6A56D3C2": {
       "DeletionPolicy": "Delete",
       "DependsOn": [
@@ -73,6 +146,13 @@ exports[`Snapshot test 1`] = `
     "AccessLogD598EBE9": {
       "DeletionPolicy": "Delete",
       "Properties": {
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "ObjectWriter",
+            },
+          ],
+        },
         "PublicAccessBlockConfiguration": {
           "BlockPublicAcls": true,
           "BlockPublicPolicy": true,
@@ -243,6 +323,598 @@ exports[`Snapshot test 1`] = `
       },
       "Type": "AWS::S3::BucketPolicy",
     },
+    "AsyncJobHandler438266BD": {
+      "DependsOn": [
+        "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
+        "AsyncJobHandlerServiceRoleFE9F530F",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "ImageUri": {
+            "Fn::Sub": "REDACTED",
+          },
+        },
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {
+              "Ref": "StorageHistory251A3AE8",
+            },
+          },
+        },
+        "ImageConfig": {
+          "Command": [
+            "async-handler.handler",
+          ],
+        },
+        "MemorySize": 256,
+        "PackageType": "Image",
+        "ReservedConcurrentExecutions": 1,
+        "Role": {
+          "Fn::GetAtt": [
+            "AsyncJobHandlerServiceRoleFE9F530F",
+            "Arn",
+          ],
+        },
+        "Timeout": 600,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageHistory251A3AE8",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageHistory251A3AE8",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "comprehend:DetectDominantLanguage",
+                "translate:TranslateText",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
+        "Roles": [
+          {
+            "Ref": "AsyncJobHandlerServiceRoleFE9F530F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AsyncJobHandlerServiceRoleFE9F530F": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AsyncJobSampleJob3C1EBA2C": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(0 0 1 * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "AsyncJobHandler438266BD",
+              "Arn",
+            ],
+          },
+          "Input": "{"jobType":"SampleJob"}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 5,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget44ece2CFC6840F",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "AuthBranding34BB87FD": {
+      "Properties": {
+        "ClientId": {
+          "Ref": "AuthUserPoolClientC635291F",
+        },
+        "UseCognitoProvidedValues": true,
+        "UserPoolId": {
+          "Ref": "AuthUserPool8115E87F",
+        },
+      },
+      "Type": "AWS::Cognito::ManagedLoginBranding",
+    },
+    "AuthDomainPrefixE1742B23": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "ServiceTimeout": "10",
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "RandomStringGenerator11e9c903f11a4989833c985dddef5eb28C5103D0",
+            "Arn",
+          ],
+        },
+        "length": 10,
+        "prefix": "webapp-",
+      },
+      "Type": "Custom::RandomString",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AuthUpdateCallbackUrlsA55622E9": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "AuthUpdateCallbackUrlsCustomResourcePolicy14EEB23D",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"@aws-sdk/client-cognito-identity-provider","action":"updateUserPoolClient","parameters":{"ClientId":"",
+              {
+                "Ref": "AuthUserPoolClientC635291F",
+              },
+              "","UserPoolId":"",
+              {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://",
+              {
+                "Fn::GetAtt": [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-in-callback","http://localhost:3011/api/auth/sign-in-callback"],"LogoutURLs":["https://",
+              {
+                "Fn::GetAtt": [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-out-callback","http://localhost:3011/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":1440},"physicalResourceId":{"id":"",
+              {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              ""}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"@aws-sdk/client-cognito-identity-provider","action":"updateUserPoolClient","parameters":{"ClientId":"",
+              {
+                "Ref": "AuthUserPoolClientC635291F",
+              },
+              "","UserPoolId":"",
+              {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://",
+              {
+                "Fn::GetAtt": [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-in-callback","http://localhost:3011/api/auth/sign-in-callback"],"LogoutURLs":["https://",
+              {
+                "Fn::GetAtt": [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-out-callback","http://localhost:3011/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":1440},"physicalResourceId":{"id":"",
+              {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              ""}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AuthUpdateCallbackUrlsCustomResourcePolicy14EEB23D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "cognito-idp:UpdateUserPoolClient",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AuthUserPool8115E87F",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AuthUpdateCallbackUrlsCustomResourcePolicy14EEB23D",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AuthUserPool8115E87F": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "verified_phone_number",
+              "Priority": 1,
+            },
+            {
+              "Name": "verified_email",
+              "Priority": 2,
+            },
+          ],
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true,
+        },
+        "AutoVerifiedAttributes": [
+          "email",
+        ],
+        "EmailVerificationMessage": "The verification code to your new account is {####}",
+        "EmailVerificationSubject": "Verify your new account",
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 8,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "RequireUppercase": true,
+          },
+        },
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UsernameAttributes": [
+          "email",
+        ],
+        "VerificationMessageTemplate": {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "The verification code to your new account is {####}",
+          "EmailSubject": "Verify your new account",
+          "SmsMessage": "The verification code to your new account is {####}",
+        },
+      },
+      "Type": "AWS::Cognito::UserPool",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AuthUserPoolClientC635291F": {
+      "Properties": {
+        "AllowedOAuthFlows": [
+          "code",
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": [
+          "profile",
+          "phone",
+          "email",
+          "openid",
+          "aws.cognito.signin.user.admin",
+        ],
+        "CallbackURLs": [
+          "http://localhost/dummy",
+        ],
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+        ],
+        "IdTokenValidity": 1440,
+        "LogoutURLs": [
+          "http://localhost/dummy",
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO",
+        ],
+        "TokenValidityUnits": {
+          "IdToken": "minutes",
+        },
+        "UserPoolId": {
+          "Ref": "AuthUserPool8115E87F",
+        },
+      },
+      "Type": "AWS::Cognito::UserPoolClient",
+    },
+    "AuthUserPoolCognitoDomainAD9D79E1": {
+      "Properties": {
+        "Domain": {
+          "Fn::GetAtt": [
+            "AuthDomainPrefixE1742B23",
+            "generated",
+          ],
+        },
+        "ManagedLoginVersion": 2,
+        "UserPoolId": {
+          "Ref": "AuthUserPool8115E87F",
+        },
+      },
+      "Type": "AWS::Cognito::UserPoolDomain",
+    },
+    "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Type": "NO_CACHE",
+        },
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/amazonlinux2-aarch64-standard:3.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": true,
+          "Type": "ARM_CONTAINER",
+        },
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "{
+  "version": "0.2",
+  "phases": {
+    "build": {
+      "commands": [
+        "current_dir=$(pwd)",
+        "echo \\"$input\\"",
+        "mkdir workdir",
+        "cd workdir",
+        "aws s3 cp \\"$sourceS3Url\\" temp.zip",
+        "unzip temp.zip",
+        "ls -la",
+        "aws ecr get-login-password | docker login --username AWS --password-stdin $repositoryAuthUri",
+        "aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws",
+        "docker buildx create --use",
+        "docker buildx ls",
+        "eval \\"$buildCommand\\""
+      ]
+    },
+    "post_build": {
+      "commands": [
+        "echo Build completed on \`date\`",
+        "\\nSTATUS='SUCCESS'\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\nthen\\nSTATUS='FAILED'\\nREASON=\\"ContainerImageBuild failed. See CloudWatch Log stream for the detailed reason: \\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\$252Faws\\\\$252Fcodebuild\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\"\\nfi\\ncat <<EOF > payload.json\\n{\\n  \\"StackId\\": \\"$stackId\\",\\n  \\"RequestId\\": \\"$requestId\\",\\n  \\"LogicalResourceId\\":\\"$logicalResourceId\\",\\n  \\"PhysicalResourceId\\": \\"$imageTag\\",\\n  \\"Status\\": \\"$STATUS\\",\\n  \\"Reason\\": \\"$REASON\\",\\n  \\"Data\\": {\\n    \\"ImageTag\\": \\"$imageTag\\"\\n  }\\n}\\nEOF\\ncurl -v -i -X PUT -H 'Content-Type:' -d \\"@payload.json\\" \\"$responseURL\\"\\n              "
+      ]
+    }
+  }
+}",
+          "Type": "NO_SOURCE",
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonElasticContainerRegistryPublicReadOnly",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleDefaultPolicy2316728F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                      },
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:BatchPutCodeCoverages",
+                "codebuild:BatchPutTestCases",
+                "codebuild:CreateReport",
+                "codebuild:CreateReportGroup",
+                "codebuild:UpdateReport",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:BatchGetImage",
+                "ecr:CompleteLayerUpload",
+                "ecr:DescribeImages",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:InitiateLayerUpload",
+                "ecr:PutImage",
+                "ecr:UploadLayerPart",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "WebappBuildRepository4C93D48D",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "ecr:GetAuthorizationToken",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:s3:::cdk-hnb659fds-assets-123456789012-us-east-1",
+                "arn:aws:s3:::cdk-hnb659fds-assets-123456789012-us-east-1/*",
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleDefaultPolicy2316728F",
+        "Roles": [
+          {
+            "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
       "DependsOn": [
         "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
@@ -400,7 +1072,7 @@ exports[`Snapshot test 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs22.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -445,7 +1117,7 @@ exports[`Snapshot test 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs22.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -507,28 +1179,20 @@ exports[`Snapshot test 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "EC2GarbageCollectorHandler7804A5C4": {
+    "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f306AEFF37": {
       "DependsOn": [
-        "EC2GarbageCollectorHandlerServiceRoleDefaultPolicyB666A478",
-        "EC2GarbageCollectorHandlerServiceRole038CBC88",
+        "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleDefaultPolicyFECC51DC",
+        "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4",
       ],
       "Properties": {
-        "Architectures": [
-          "arm64",
-        ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
           "S3Key": "REDACTED",
         },
-        "Environment": {
-          "Variables": {
-            "EXPIRATION_IN_DAYS": "1",
-          },
-        },
         "Handler": "index.handler",
         "Role": {
           "Fn::GetAtt": [
-            "EC2GarbageCollectorHandlerServiceRole038CBC88",
+            "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4",
             "Arn",
           ],
         },
@@ -537,7 +1201,7 @@ exports[`Snapshot test 1`] = `
       },
       "Type": "AWS::Lambda::Function",
     },
-    "EC2GarbageCollectorHandlerServiceRole038CBC88": {
+    "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -568,48 +1232,31 @@ exports[`Snapshot test 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "EC2GarbageCollectorHandlerServiceRoleDefaultPolicyB666A478": {
+    "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleDefaultPolicyFECC51DC": {
       "Properties": {
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": [
-                "ec2:DescribeInstances",
-                "ec2:TerminateInstances",
-              ],
+              "Action": "codebuild:StartBuild",
               "Effect": "Allow",
-              "Resource": "*",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                  "Arn",
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "EC2GarbageCollectorHandlerServiceRoleDefaultPolicyB666A478",
+        "PolicyName": "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleDefaultPolicyFECC51DC",
         "Roles": [
           {
-            "Ref": "EC2GarbageCollectorHandlerServiceRole038CBC88",
+            "Ref": "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
-    },
-    "EC2GarbageCollectorScheduleAllowEventRuleTestMainStackEC2GarbageCollectorHandler9F5B27AB4F33A51A": {
-      "Properties": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "EC2GarbageCollectorHandler7804A5C4",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": {
-          "Fn::GetAtt": [
-            "EC2GarbageCollectorScheduleBA6395AF",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
     },
     "EC2GarbageCollectorScheduleBA6395AF": {
       "Properties": {
@@ -618,16 +1265,634 @@ exports[`Snapshot test 1`] = `
         "Targets": [
           {
             "Arn": {
+              "Ref": "EC2GarbageCollectorStateMachine5AE329F9",
+            },
+            "Id": "Target0",
+            "RoleArn": {
               "Fn::GetAtt": [
-                "EC2GarbageCollectorHandler7804A5C4",
+                "EC2GarbageCollectorStateMachineEventsRole5EFB5D90",
                 "Arn",
               ],
             },
-            "Id": "Target0",
           },
         ],
       },
       "Type": "AWS::Events::Rule",
+    },
+    "EC2GarbageCollectorStateMachine5AE329F9": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "EC2GarbageCollectorStateMachineRoleDefaultPolicy85987192",
+        "EC2GarbageCollectorStateMachineRole93EEEB7C",
+      ],
+      "Properties": {
+        "DefinitionString": "{
+  "QueryLanguage": "JSONata",
+  "StartAt": "DescribeStoppedInstances",
+  "States": {
+    "DescribeStoppedInstances": {
+      "Next": "TerminateInstances",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:ec2:describeInstances",
+      "Arguments": {
+        "Filters": [
+          {
+            "Name": "tag-key",
+            "Values": [
+              "RemoteSweWorkerId"
+            ]
+          },
+          {
+            "Name": "instance-state-name",
+            "Values": [
+              "stopped"
+            ]
+          }
+        ]
+      },
+      "Assign": {
+        "instances": "{% [$states.result.Reservations[].Instances] %}",
+        "expirationThreshold": "{% $millis() - 1000 * 60 * 60 * 24 * \${expirationInDays} %}"
+      }
+    },
+    "TerminateInstances": {
+      "Next": "GetCurrentAmiId",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:ec2:terminateInstances",
+      "Arguments": {
+        "InstanceIds": "{% [$instances[$toMillis(LaunchTime) < $expirationThreshold].InstanceId] %}"
+      },
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "GetCurrentAmiId"
+        }
+      ]
+    },
+    "GetCurrentAmiId": {
+      "Next": "DescribeAMIs",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+      "Arguments": {
+        "Name": "/remote-swe/worker/ami-id"
+      },
+      "Assign": {
+        "workerAmiId": "{% $states.result.Parameter.Value %}"
+      }
+    },
+    "DescribeAMIs": {
+      "Next": "ProcessAMIs",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:ec2:describeImages",
+      "Arguments": {
+        "Owners": [
+          "self"
+        ],
+        "Filters": [
+          {
+            "Name": "name",
+              "Values": [
+                "\${imageRecipeNamePattern}"
+              ]
+          }
+        ]
+      },
+      "Assign": {
+        "images": "{% $states.result.Images %}"
+      }
+    },
+    "ProcessAMIs": {
+      "Type": "Map",
+      "Items": "{% [$images[ImageId != $workerAmiId and $toMillis(CreationDate) < $expirationThreshold]] %}",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Parallel",
+        "States": {
+          "Parallel": {
+            "Type": "Parallel",
+            "Branches": [
+              {
+                "StartAt": "DeleteImageBuilderImage",
+                "States": {
+                  "DeleteImageBuilderImage": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::aws-sdk:imagebuilder:deleteImage",
+                    "Arguments": {
+                      "ImageBuildVersionArn": "{% $states.input.Tags[Key = 'Ec2ImageBuilderArn'].Value %}"
+                    },
+                    "Next": "Pass",
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "Next": "Pass"
+                      }
+                    ]
+                  },
+                  "Pass": {
+                    "Type": "Pass",
+                    "End": true
+                  }
+                }
+              },
+              {
+                "StartAt": "DeregisterImage",
+                "States": {
+                  "DeregisterImage": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::aws-sdk:ec2:deregisterImage",
+                    "Arguments": {
+                      "ImageId": "{% $states.input.ImageId %}"
+                    },
+                    "Next": "Pass (1)",
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "Next": "Pass (1)"
+                      }
+                    ]
+                  },
+                  "Pass (1)": {
+                    "Type": "Pass",
+                    "End": true
+                  }
+                }
+              },
+              {
+                "StartAt": "ProcessSnapshots",
+                "States": {
+                  "ProcessSnapshots": {
+                    "Type": "Map",
+                    "Items": "{% [$states.input.BlockDeviceMappings[$exists(Ebs)]] %}",
+                    "ItemProcessor": {
+                      "ProcessorConfig": {
+                        "Mode": "INLINE"
+                      },
+                      "StartAt": "DeleteSnapshotInMap",
+                      "States": {
+                        "DeleteSnapshotInMap": {
+                          "Type": "Task",
+                          "Resource": "arn:aws:states:::aws-sdk:ec2:deleteSnapshot",
+                          "Arguments": {
+                            "SnapshotId": "{% $states.input.Ebs.SnapshotId %}"
+                          },
+                          "Next": "Pass (2)",
+                          "Catch": [
+                            {
+                              "ErrorEquals": [
+                                "States.ALL"
+                              ],
+                              "Next": "Pass (2)"
+                            }
+                          ]
+                        },
+                        "Pass (2)": {
+                          "Type": "Pass",
+                          "End": true
+                        }
+                      }
+                    },
+                    "MaxConcurrency": 5,
+                    "End": true
+                  }
+                }
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrency": 3,
+      "End": true
+    }
+  },
+  "TimeoutSeconds": 600
+}
+",
+        "DefinitionSubstitutions": {
+          "expirationInDays": "1",
+          "imageRecipeNamePattern": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::GetAtt": [
+                    "WorkerImageBuilderImagePipelineV2ImageRecipe351515D4",
+                    "Name",
+                  ],
+                },
+                "*",
+              ],
+            ],
+          },
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "EC2GarbageCollectorStateMachineRole93EEEB7C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::StepFunctions::StateMachine",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "EC2GarbageCollectorStateMachineEventsRole5EFB5D90": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EC2GarbageCollectorStateMachineEventsRoleDefaultPolicy50859D05": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "EC2GarbageCollectorStateMachine5AE329F9",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "EC2GarbageCollectorStateMachineEventsRoleDefaultPolicy50859D05",
+        "Roles": [
+          {
+            "Ref": "EC2GarbageCollectorStateMachineEventsRole5EFB5D90",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "EC2GarbageCollectorStateMachineRole93EEEB7C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EC2GarbageCollectorStateMachineRoleDefaultPolicy85987192": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ec2:DeleteSnapshot",
+                "ec2:DeregisterImage",
+                "ec2:DescribeImages",
+                "ec2:DescribeInstances",
+                "ec2:TerminateInstances",
+                "imagebuilder:DeleteImage",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:*:*:parameter/remote-swe/worker/ami-id",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "EC2GarbageCollectorStateMachineRoleDefaultPolicy85987192",
+        "Roles": [
+          {
+            "Ref": "EC2GarbageCollectorStateMachineRole93EEEB7C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4CE16D83A": {
+      "DependsOn": [
+        "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4ServiceRole075D0F03",
+      ],
+      "Properties": {
+        "Code": {
+          "ZipFile": "const response = require('cfn-response');
+
+exports.handler = async function (event, context) {
+  try {
+    console.log(event);
+    if (event.RequestType == 'Delete') {
+      return await response.send(event, context, response.SUCCESS);
+    }
+    const initialVersion = event.ResourceProperties.initialVersion;
+    if (event.RequestType == 'Create') {
+      return await response.send(event, context, response.SUCCESS, { version: initialVersion }, initialVersion);
+    }
+    if (event.RequestType == 'Update') {
+      const currentVersion = event.PhysicalResourceId; // e.g. 1.0.0
+      // increment patch version
+      const [major, minor, patch] = currentVersion.split('.').map(Number);
+      const [oMajor, oMinor, oPatch] = initialVersion.split('.').map(Number);
+      let newVersion = [major, minor, patch + 1].join('.');
+      if (oMajor > major || (oMajor == major && oMinor > minor)) {
+        newVersion = initialVersion;
+      }
+      await response.send(event, context, response.SUCCESS, { version: newVersion }, newVersion);
+    }
+  } catch (e) {
+    console.log(e);
+    await response.send(event, context, response.FAILED);
+  }
+};
+",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4ServiceRole075D0F03",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4ServiceRole075D0F03": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "LookupVersionArnc866039b737310486254136aff682613982c3fdf9d603A5356": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "LookupVersionArnc866039b737310486254136aff682613982c3fdf9dCustomResourcePolicyAF9059CF",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"SSM","action":"getParameter","parameters":{"Name":"",
+              {
+                "Fn::ImportValue": "TestUsEast1Stack:ExportsOutputRefSignPayloadHandlerFunctionVersionF9FE430AFB7A5BC1",
+              },
+              ""},"physicalResourceId":{"id":"1577836800000"},"region":"us-east-1"}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"SSM","action":"getParameter","parameters":{"Name":"",
+              {
+                "Fn::ImportValue": "TestUsEast1Stack:ExportsOutputRefSignPayloadHandlerFunctionVersionF9FE430AFB7A5BC1",
+              },
+              ""},"physicalResourceId":{"id":"1577836800000"},"region":"us-east-1"}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "LookupVersionArnc866039b737310486254136aff682613982c3fdf9dCustomResourcePolicyAF9059CF": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:us-east-1:123456789012:parameter/",
+                    {
+                      "Fn::ImportValue": "TestUsEast1Stack:ExportsOutputRefSignPayloadHandlerFunctionVersionF9FE430AFB7A5BC1",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "LookupVersionArnc866039b737310486254136aff682613982c3fdf9dCustomResourcePolicyAF9059CF",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "RandomStringGenerator11e9c903f11a4989833c985dddef5eb28C5103D0": {
+      "DependsOn": [
+        "RandomStringGenerator11e9c903f11a4989833c985dddef5eb2ServiceRoleAB6B57A9",
+      ],
+      "Properties": {
+        "Code": {
+          "ZipFile": "const response = require('cfn-response');
+const crypto = require('crypto');
+
+exports.handler = async function (event, context) {
+  try {
+    console.log(event);
+    if (event.RequestType == 'Delete') {
+      return await response.send(event, context, response.SUCCESS);
+    }
+
+    const prefix = event.ResourceProperties.prefix ?? '';
+    const length = event.ResourceProperties.length ?? '8';
+    const generate = () => {
+      const random = crypto.randomBytes(parseInt(length)).toString('hex');
+      return \`\${prefix}\${random.slice(0, length)}\`;
+    };
+
+    if (event.RequestType == 'Create') {
+      const generated = generate();
+      return await response.send(event, context, response.SUCCESS, { generated }, generated);
+    }
+    if (event.RequestType == 'Update') {
+      const current = event.PhysicalResourceId;
+      if (current.startsWith(prefix)) {
+        return await response.send(event, context, response.SUCCESS, { generated: current }, current);
+      }
+      const generated = generate();
+      return await response.send(event, context, response.SUCCESS, { generated }, generated);
+    }
+  } catch (e) {
+    console.log(e);
+    await response.send(event, context, response.FAILED);
+  }
+};
+",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "RandomStringGenerator11e9c903f11a4989833c985dddef5eb2ServiceRoleAB6B57A9",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "RandomStringGenerator11e9c903f11a4989833c985dddef5eb2ServiceRoleAB6B57A9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget44ece2CFC6840F": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": "arn:aws:scheduler:us-east-1:123456789012:schedule-group/default",
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget44ece2DefaultPolicyFDF3E159": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "AsyncJobHandler438266BD",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "AsyncJobHandler438266BD",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget44ece2DefaultPolicyFDF3E159",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTarget44ece2CFC6840F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "SlackBoltAccessLog187F540C": {
       "DeletionPolicy": "Delete",
@@ -733,11 +1998,12 @@ exports[`Snapshot test 1`] = `
       ],
       "Properties": {
         "Architectures": [
-          "arm64",
+          "x86_64",
         ],
         "Code": {
-          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "REDACTED",
+          "ImageUri": {
+            "Fn::Sub": "REDACTED",
+          },
         },
         "Environment": {
           "Variables": {
@@ -758,9 +2024,6 @@ exports[`Snapshot test 1`] = `
                   },
                 ],
               ],
-            },
-            "LAUNCH_TEMPLATE_ID": {
-              "Ref": "WorkerLaunchTemplateCB68F8E3",
             },
             "SUBNET_ID_LIST": {
               "Fn::Join": [
@@ -783,16 +2046,24 @@ exports[`Snapshot test 1`] = `
             "TABLE_NAME": {
               "Ref": "StorageHistory251A3AE8",
             },
+            "WORKER_AMI_PARAMETER_NAME": "/remote-swe/worker/ami-id",
+            "WORKER_LAUNCH_TEMPLATE_ID": {
+              "Ref": "WorkerLaunchTemplateCB68F8E3",
+            },
           },
         },
-        "Handler": "index.handler",
+        "ImageConfig": {
+          "Command": [
+            "async-handler.handler",
+          ],
+        },
+        "PackageType": "Image",
         "Role": {
           "Fn::GetAtt": [
             "SlackBoltAsyncHandlerServiceRole048AA480",
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
         "Timeout": 600,
       },
       "Type": "AWS::Lambda::Function",
@@ -834,6 +2105,16 @@ exports[`Snapshot test 1`] = `
           "Statement": [
             {
               "Action": [
+                "ssm:DescribeParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+                "ssm:GetParameters",
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/worker/ami-id",
+            },
+            {
+              "Action": [
                 "dynamodb:BatchGetItem",
                 "dynamodb:BatchWriteItem",
                 "dynamodb:ConditionCheckItem",
@@ -848,12 +2129,28 @@ exports[`Snapshot test 1`] = `
                 "dynamodb:UpdateItem",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "StorageHistory251A3AE8",
-                  "Arn",
-                ],
-              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageHistory251A3AE8",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageHistory251A3AE8",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
             },
             {
               "Action": [
@@ -942,11 +2239,12 @@ exports[`Snapshot test 1`] = `
       ],
       "Properties": {
         "Architectures": [
-          "arm64",
+          "x86_64",
         ],
         "Code": {
-          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "REDACTED",
+          "ImageUri": {
+            "Fn::Sub": "REDACTED",
+          },
         },
         "Environment": {
           "Variables": {
@@ -980,14 +2278,13 @@ exports[`Snapshot test 1`] = `
             },
           },
         },
-        "Handler": "index.handler",
+        "PackageType": "Image",
         "Role": {
           "Fn::GetAtt": [
             "SlackBoltHandlerServiceRole7559063C",
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
         "Timeout": 29,
       },
       "Type": "AWS::Lambda::Function",
@@ -1069,12 +2366,28 @@ exports[`Snapshot test 1`] = `
                 "dynamodb:UpdateItem",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "StorageHistory251A3AE8",
-                  "Arn",
-                ],
-              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageHistory251A3AE8",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageHistory251A3AE8",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
             },
             {
               "Action": [
@@ -1156,6 +2469,10 @@ exports[`Snapshot test 1`] = `
             "AttributeName": "SK",
             "AttributeType": "S",
           },
+          {
+            "AttributeName": "LSI1",
+            "AttributeType": "S",
+          },
         ],
         "BillingMode": "PAY_PER_REQUEST",
         "KeySchema": [
@@ -1166,6 +2483,24 @@ exports[`Snapshot test 1`] = `
           {
             "AttributeName": "SK",
             "KeyType": "RANGE",
+          },
+        ],
+        "LocalSecondaryIndexes": [
+          {
+            "IndexName": "LSI1",
+            "KeySchema": [
+              {
+                "AttributeName": "PK",
+                "KeyType": "HASH",
+              },
+              {
+                "AttributeName": "LSI1",
+                "KeyType": "RANGE",
+              },
+            ],
+            "Projection": {
+              "ProjectionType": "ALL",
+            },
           },
         ],
         "Replicas": [
@@ -1184,6 +2519,25 @@ exports[`Snapshot test 1`] = `
     "StorageImageBucket99BA9550": {
       "DeletionPolicy": "Delete",
       "Properties": {
+        "CorsConfiguration": {
+          "CorsRules": [
+            {
+              "AllowedHeaders": [
+                "*",
+              ],
+              "AllowedMethods": [
+                "GET",
+                "HEAD",
+                "PUT",
+                "POST",
+              ],
+              "AllowedOrigins": [
+                "*",
+              ],
+              "MaxAge": 3000,
+            },
+          ],
+        },
         "LoggingConfiguration": {
           "DestinationBucketName": {
             "Ref": "AccessLogD598EBE9",
@@ -1563,6 +2917,787 @@ exports[`Snapshot test 1`] = `
       },
       "Type": "AWS::EC2::VPCGatewayAttachment",
     },
+    "Webapp107041BD": {
+      "Properties": {
+        "DistributionConfig": {
+          "Comment": "CloudFront for RemoteSweAgentsWebapp",
+          "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PUT",
+              "PATCH",
+              "POST",
+              "DELETE",
+            ],
+            "CachePolicyId": {
+              "Ref": "WebappSharedCachePolicy14FEE4A0",
+            },
+            "Compress": true,
+            "LambdaFunctionAssociations": [
+              {
+                "EventType": "origin-request",
+                "IncludeBody": true,
+                "LambdaFunctionARN": {
+                  "Fn::GetAtt": [
+                    "LookupVersionArnc866039b737310486254136aff682613982c3fdf9d603A5356",
+                    "Parameter.Value",
+                  ],
+                },
+              },
+            ],
+            "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+            "TargetOriginId": "TestMainStackWebappOrigin144EF7B3C",
+            "ViewerProtocolPolicy": "allow-all",
+          },
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Logging": {
+            "Bucket": {
+              "Fn::GetAtt": [
+                "AccessLogD598EBE9",
+                "RegionalDomainName",
+              ],
+            },
+            "Prefix": "RemoteSweAgentsWebapp/",
+          },
+          "Origins": [
+            {
+              "ConnectionTimeout": 6,
+              "CustomOriginConfig": {
+                "OriginProtocolPolicy": "https-only",
+                "OriginReadTimeout": 60,
+                "OriginSSLProtocols": [
+                  "TLSv1.2",
+                ],
+              },
+              "DomainName": {
+                "Fn::Select": [
+                  2,
+                  {
+                    "Fn::Split": [
+                      "/",
+                      {
+                        "Fn::GetAtt": [
+                          "WebappHandlerFunctionUrl7AEF8DEE",
+                          "FunctionUrl",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              "Id": "TestMainStackWebappOrigin144EF7B3C",
+              "OriginAccessControlId": {
+                "Fn::GetAtt": [
+                  "WebappOrigin1FunctionUrlOriginAccessControlEA98B600",
+                  "Id",
+                ],
+              },
+            },
+          ],
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "WebappBuild348806E3": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+        "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleDefaultPolicy2316728F",
+        "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE",
+      ],
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f306AEFF37",
+            "Arn",
+          ],
+        },
+        "buildCommand": {
+          "Fn::Join": [
+            "",
+            [
+              "docker buildx build --build-arg ALLOWED_ORIGIN_HOST=*.cloudfront.net --build-arg SKIP_TS_BUILD=true --build-arg NEXT_PUBLIC_EVENT_HTTP_ENDPOINT=https://",
+              {
+                "Fn::GetAtt": [
+                  "WorkerBusApi8460ABC0",
+                  "Dns.Http",
+                ],
+              },
+              " --build-arg NEXT_PUBLIC_AWS_REGION=us-east-1 --file docker/webapp.Dockerfile --platform linux/arm64 --output type=image,name=",
+              {
+                "Fn::Select": [
+                  4,
+                  {
+                    "Fn::Split": [
+                      ":",
+                      {
+                        "Fn::GetAtt": [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".dkr.ecr.",
+              {
+                "Fn::Select": [
+                  3,
+                  {
+                    "Fn::Split": [
+                      ":",
+                      {
+                        "Fn::GetAtt": [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".",
+              {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              {
+                "Ref": "WebappBuildRepository4C93D48D",
+              },
+              ":<IMAGE_TAG>,push=true --provenance=false .",
+            ],
+          ],
+        },
+        "codeBuildProjectName": {
+          "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+        },
+        "repositoryUri": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Fn::Select": [
+                  4,
+                  {
+                    "Fn::Split": [
+                      ":",
+                      {
+                        "Fn::GetAtt": [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".dkr.ecr.",
+              {
+                "Fn::Select": [
+                  3,
+                  {
+                    "Fn::Split": [
+                      ":",
+                      {
+                        "Fn::GetAtt": [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".",
+              {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              {
+                "Ref": "WebappBuildRepository4C93D48D",
+              },
+            ],
+          ],
+        },
+        "sourceS3Url": "s3://cdk-hnb659fds-assets-123456789012-us-east-1/REDACTED",
+        "tagPrefix": "webapp-starter-",
+        "type": "ContainerImageBuild",
+      },
+      "Type": "Custom::CDKContainerImageBuild",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappBuildRepository4C93D48D": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "EmptyOnDelete": true,
+        "RepositoryPolicyText": {
+          "Statement": [
+            {
+              "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:BatchGetImage",
+                "ecr:GetDownloadUrlForLayer",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::ECR::Repository",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappHandler8DD158A3": {
+      "DependsOn": [
+        "WebappHandlerServiceRoleDefaultPolicy7D06F4EA",
+        "WebappHandlerServiceRole4F4D1ACD",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "ImageUri": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::Select": [
+                    4,
+                    {
+                      "Fn::Split": [
+                        ":",
+                        {
+                          "Fn::GetAtt": [
+                            "WebappBuildRepository4C93D48D",
+                            "Arn",
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                ".dkr.ecr.",
+                {
+                  "Fn::Select": [
+                    3,
+                    {
+                      "Fn::Split": [
+                        ":",
+                        {
+                          "Fn::GetAtt": [
+                            "WebappBuildRepository4C93D48D",
+                            "Arn",
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                ".",
+                {
+                  "Ref": "AWS::URLSuffix",
+                },
+                "/",
+                {
+                  "Ref": "WebappBuildRepository4C93D48D",
+                },
+                ":",
+                {
+                  "Fn::GetAtt": [
+                    "WebappBuild348806E3",
+                    "ImageTag",
+                  ],
+                },
+              ],
+            ],
+          },
+        },
+        "Environment": {
+          "Variables": {
+            "AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER": {
+              "Ref": "WebappOriginSourceParameterD87E143B",
+            },
+            "ASYNC_JOB_HANDLER_ARN": {
+              "Fn::GetAtt": [
+                "AsyncJobHandler438266BD",
+                "Arn",
+              ],
+            },
+            "BUCKET_NAME": {
+              "Ref": "StorageImageBucket99BA9550",
+            },
+            "COGNITO_DOMAIN": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "AuthDomainPrefixE1742B23",
+                      "generated",
+                    ],
+                  },
+                  ".auth.us-east-1.amazoncognito.com",
+                ],
+              ],
+            },
+            "EVENT_HTTP_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "WorkerBusApi8460ABC0",
+                      "Dns.Http",
+                    ],
+                  },
+                ],
+              ],
+            },
+            "SUBNET_ID_LIST": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+                  },
+                  ",",
+                  {
+                    "Ref": "VpcV2PublicSubnet2Subnet63F50919",
+                  },
+                  ",",
+                  {
+                    "Ref": "VpcV2PublicSubnet3SubnetC2A8D2E4",
+                  },
+                ],
+              ],
+            },
+            "TABLE_NAME": {
+              "Ref": "StorageHistory251A3AE8",
+            },
+            "USER_POOL_CLIENT_ID": {
+              "Ref": "AuthUserPoolClientC635291F",
+            },
+            "USER_POOL_ID": {
+              "Ref": "AuthUserPool8115E87F",
+            },
+            "WORKER_AMI_PARAMETER_NAME": "/remote-swe/worker/ami-id",
+            "WORKER_LAUNCH_TEMPLATE_ID": {
+              "Ref": "WorkerLaunchTemplateCB68F8E3",
+            },
+          },
+        },
+        "MemorySize": 1769,
+        "PackageType": "Image",
+        "Role": {
+          "Fn::GetAtt": [
+            "WebappHandlerServiceRole4F4D1ACD",
+            "Arn",
+          ],
+        },
+        "Timeout": 180,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "WebappHandlerFunctionUrl7AEF8DEE": {
+      "Properties": {
+        "AuthType": "AWS_IAM",
+        "InvokeMode": "RESPONSE_STREAM",
+        "TargetFunctionArn": {
+          "Fn::GetAtt": [
+            "WebappHandler8DD158A3",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Url",
+    },
+    "WebappHandlerServiceRole4F4D1ACD": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WebappHandlerServiceRoleDefaultPolicy7D06F4EA": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ssm:DescribeParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+                "ssm:GetParameters",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/worker/ami-id",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:ssm:us-east-1:123456789012:parameter/",
+                      {
+                        "Ref": "WebappOriginSourceParameterD87E143B",
+                      },
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "AsyncJobHandler438266BD",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "AsyncJobHandler438266BD",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageHistory251A3AE8",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageHistory251A3AE8",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:Abort*",
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageImageBucket99BA9550",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageImageBucket99BA9550",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "appsync:EventPublish",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:appsync:us-east-1:123456789012:apis/",
+                    {
+                      "Fn::GetAtt": [
+                        "WorkerBusApi8460ABC0",
+                        "ApiId",
+                      ],
+                    },
+                    "/channelNamespace/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "ec2:RunInstances",
+                "ec2:StartInstances",
+                "iam:PassRole",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WebappHandlerServiceRoleDefaultPolicy7D06F4EA",
+        "Roles": [
+          {
+            "Ref": "WebappHandlerServiceRole4F4D1ACD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "WebappOrigin1FunctionUrlOriginAccessControlEA98B600": {
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Name": "TestMainStackWebappOrigin1FunctionUrlOriginAccessControlD4F66369",
+          "OriginAccessControlOriginType": "lambda",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4",
+        },
+      },
+      "Type": "AWS::CloudFront::OriginAccessControl",
+    },
+    "WebappOrigin1InvokeFromApiForTestMainStackWebappOrigin144EF7B3CED39D4AD": {
+      "Properties": {
+        "Action": "lambda:InvokeFunctionUrl",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WebappHandlerFunctionUrl7AEF8DEE",
+            "FunctionArn",
+          ],
+        },
+        "Principal": "cloudfront.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":cloudfront::",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":distribution/",
+              {
+                "Ref": "Webapp107041BD",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "WebappOriginSourceParameterD87E143B": {
+      "Properties": {
+        "Type": "String",
+        "Value": "dummy",
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "WebappSharedCachePolicy14FEE4A0": {
+      "Properties": {
+        "CachePolicyConfig": {
+          "DefaultTTL": 0,
+          "MaxTTL": 31536000,
+          "MinTTL": 0,
+          "Name": "TestMainStackWebappSharedCachePolicy2F06D6AB-us-east-1",
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "CookiesConfig": {
+              "CookieBehavior": "all",
+            },
+            "EnableAcceptEncodingBrotli": true,
+            "EnableAcceptEncodingGzip": true,
+            "HeadersConfig": {
+              "HeaderBehavior": "whitelist",
+              "Headers": [
+                "authorization",
+                "Origin",
+                "X-HTTP-Method-Override",
+                "X-HTTP-Method",
+                "X-Method-Override",
+              ],
+            },
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "all",
+            },
+          },
+        },
+      },
+      "Type": "AWS::CloudFront::CachePolicy",
+    },
+    "WebappUpdateAmplifyOriginSourceParameter3F609A08": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "WebappUpdateAmplifyOriginSourceParameterCustomResourcePolicy5D80E122",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"ssm","action":"putParameter","parameters":{"Name":"",
+              {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              "","Value":"https://",
+              {
+                "Fn::GetAtt": [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "","Overwrite":true},"physicalResourceId":{"id":"",
+              {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              ""}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"ssm","action":"putParameter","parameters":{"Name":"",
+              {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              "","Value":"https://",
+              {
+                "Fn::GetAtt": [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "","Overwrite":true},"physicalResourceId":{"id":"",
+              {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              ""}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappUpdateAmplifyOriginSourceParameterCustomResourcePolicy5D80E122": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:PutParameter",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:us-east-1:123456789012:parameter/",
+                    {
+                      "Ref": "WebappOriginSourceParameterD87E143B",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WebappUpdateAmplifyOriginSourceParameterCustomResourcePolicy5D80E122",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "WorkerBusApi8460ABC0": {
       "Properties": {
         "EventConfig": {
@@ -1570,10 +3705,22 @@ exports[`Snapshot test 1`] = `
             {
               "AuthType": "AWS_IAM",
             },
+            {
+              "AuthType": "AMAZON_COGNITO_USER_POOLS",
+              "CognitoConfig": {
+                "AwsRegion": "us-east-1",
+                "UserPoolId": {
+                  "Ref": "AuthUserPool8115E87F",
+                },
+              },
+            },
           ],
           "ConnectionAuthModes": [
             {
               "AuthType": "AWS_IAM",
+            },
+            {
+              "AuthType": "AMAZON_COGNITO_USER_POOLS",
             },
           ],
           "DefaultPublishAuthModes": [
@@ -1585,9 +3732,12 @@ exports[`Snapshot test 1`] = `
             {
               "AuthType": "AWS_IAM",
             },
+            {
+              "AuthType": "AMAZON_COGNITO_USER_POOLS",
+            },
           ],
         },
-        "Name": "RemoteWorkerEventBus",
+        "Name": "TestMainStackWorkerBus7AC2E434",
       },
       "Type": "AWS::AppSync::Api",
     },
@@ -1599,9 +3749,1524 @@ exports[`Snapshot test 1`] = `
             "ApiId",
           ],
         },
+        "CodeS3Location": "s3://cdk-hnb659fds-assets-123456789012-us-east-1/36c61e7309cc4bdcaf9588fb5231788dcd2eb0c5703e91445fac3a6896fa83ed.mjs",
+        "HandlerConfigs": {},
         "Name": "event-bus",
       },
       "Type": "AWS::AppSync::ChannelNamespace",
+    },
+    "WorkerImageBuilderAdditionalInstancePolicy4F8E90CE": {
+      "Properties": {
+        "Description": "",
+        "Path": "/",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetBucket*",
+                "s3:GetObject*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "WorkerSourceBucket539ACD15",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WorkerSourceBucket539ACD15",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::ManagedPolicy",
+    },
+    "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA": {
+      "Properties": {
+        "DisplayName": "Image Builder Notify",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161": {
+      "Properties": {
+        "Description": "A sample image pipeline",
+        "EnhancedImageMetadataEnabled": false,
+        "ImageRecipeArn": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2ImageRecipe351515D4",
+            "Arn",
+          ],
+        },
+        "InfrastructureConfigurationArn": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2InfrastructureConfigurationDA9D33AE",
+            "Arn",
+          ],
+        },
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DImagePipeline",
+      },
+      "Type": "AWS::ImageBuilder::ImagePipeline",
+    },
+    "WorkerImageBuilderImagePipelineV2ImageRecipe351515D4": {
+      "Properties": {
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 50,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "Components": [
+          {
+            "ComponentArn": {
+              "Fn::GetAtt": [
+                "WorkerImageBuilderImagePipelineV2WorkerDependencies6FAC8E07",
+                "Arn",
+              ],
+            },
+          },
+        ],
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6D6F803B",
+        "ParentImage": "{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}",
+        "Version": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImageRecipeVersion51A6E2BF",
+            "version",
+          ],
+        },
+      },
+      "Type": "AWS::ImageBuilder::ImageRecipe",
+    },
+    "WorkerImageBuilderImagePipelineV2InfrastructureConfigurationDA9D33AE": {
+      "DependsOn": [
+        "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C",
+      ],
+      "Properties": {
+        "Description": "Example Infrastructure Configuration for Image Builder",
+        "InstanceProfileName": {
+          "Ref": "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C",
+        },
+        "InstanceTypes": [
+          "t3.medium",
+          "m5.large",
+          "m5.xlarge",
+        ],
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DInfraConfig",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "WorkerImageBuilderSecurityGroup45E41ABB",
+              "GroupId",
+            ],
+          },
+        ],
+        "SnsTopicArn": {
+          "Ref": "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA",
+        },
+        "SubnetId": {
+          "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+        },
+      },
+      "Type": "AWS::ImageBuilder::InfrastructureConfiguration",
+    },
+    "WorkerImageBuilderImagePipelineV2InstanceProfileA6F88A4C": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "WorkerImageBuilderImagePipelineV2Role3BCE675E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "WorkerImageBuilderImagePipelineV2Role3BCE675E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role used as part of an Image Builder pipeline",
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/EC2InstanceProfileForImageBuilder",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/EC2InstanceProfileForImageBuilderECRContainerBuilds",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+          {
+            "Ref": "WorkerImageBuilderAdditionalInstancePolicy4F8E90CE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaA19D3FE4": {
+      "DependsOn": [
+        "WorkerImageBuilderImagePipelineV2UpdateLambdaRole648C1C2C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Environment": {
+          "Variables": {
+            "SSM_PATH": "/remote-swe/worker/ami-id",
+          },
+        },
+        "Handler": "image-builder-lambda-update-ssm.lambda_handler",
+        "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2UpdateLambdaRole648C1C2C",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.10",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaAllowInvokeTestMainStackWorkerImageBuilderImagePipelineV2ImageBuilderTopic99176B1DE13D9CE4": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2UpdateLambdaA19D3FE4",
+            "Arn",
+          ],
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaImageBuilderTopicD5FE83C9": {
+      "Properties": {
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderImagePipelineV2UpdateLambdaA19D3FE4",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": {
+          "Ref": "WorkerImageBuilderImagePipelineV2ImageBuilderTopic1FBB0EDA",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "WorkerImageBuilderImagePipelineV2UpdateLambdaRole648C1C2C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "ssm:AddTagsToResource",
+                    "ssm:GetParameter",
+                    "ssm:GetParameterHistory",
+                    "ssm:GetParameters",
+                    "ssm:PutParameter",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/worker/ami-id",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "AmiSsmUpdateLambdaPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WorkerImageBuilderImagePipelineV2WorkerDependencies6FAC8E07": {
+      "Properties": {
+        "Data": {
+          "Fn::Join": [
+            "",
+            [
+              "name: MyComponentDocument
+description: This is an example component document
+schemaVersion: 1
+phases:
+  - name: build
+    steps:
+      - name: InstallUpdates
+        action: UpdateOS
+      - name: InstallDependencies
+        action: ExecuteBash
+        inputs:
+          commands:
+            - "#!/bin/bash
+
+              apt-get -o DPkg::Lock::Timeout=-1 update
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y python3-pip unzip
+
+              ln -s -f /usr/bin/pip3 /usr/bin/pip
+
+              ln -s -f /usr/bin/python3 /usr/bin/python
+
+
+              # Install docker https://docs.docker.com/engine/install/ubuntu/#set-up-the-repository
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y ca-certificates curl
+
+              install -m 0755 -d /etc/apt/keyrings
+
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+              chmod a+r /etc/apt/keyrings/docker.asc
+
+
+              echo   \\"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu   $(. /etc/os-release && echo \\"\${UBUNTU_CODENAME:-$VERSION_CODENAME}\\") stable\\" |   tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+              apt-get -o DPkg::Lock::Timeout=-1 update
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+              groupadd docker
+
+              usermod -aG docker ubuntu
+
+
+              # Install Node.js
+
+              sudo -u ubuntu bash -c \\"curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash\\"
+
+              sudo -u ubuntu bash -c -i \\"nvm install 22\\"
+
+
+              # Install AWS CLI
+
+              curl \\"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\\" -o \\"awscliv2.zip\\"
+
+              unzip -q awscliv2.zip
+
+              sudo ./aws/install
+
+
+              # Install Fluent Bit
+
+              curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+
+
+              # Install GitHub CLI https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+
+              (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))   && sudo mkdir -p -m 755 /etc/apt/keyrings   && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg   && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg   && echo \\"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null   && sudo apt-get -o DPkg::Lock::Timeout=-1 update   && sudo apt-get -o DPkg::Lock::Timeout=-1 install gh -y
+
+
+              # Configure Git user for ubuntu
+
+              sudo -u ubuntu bash -c 'git config --global user.name \\"remote-swe-app[bot]\\"'
+
+              sudo -u ubuntu bash -c 'git config --global user.email \\"123456+remote-swe-app[bot]@users.noreply.github.com\\"'
+
+
+              # install uv
+
+              sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+
+              aws ssm get-parameter     --name /remote-swe/github/app-private-key     --query \\"Parameter.Value\\"     --output text > /opt/private-key.pem
+
+              curl -L \\"https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64\\" -o gh-token
+
+              chmod +x gh-token
+
+              mv gh-token /usr/bin
+
+              mkdir -p /opt/myapp && cd /opt/myapp
+
+              chown -R ubuntu:ubuntu /opt/myapp
+
+
+              # Install Playwright dependencies
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install-deps\\"
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install chromium\\"
+
+              # Disable Ubuntu security feature to get chromium working
+
+              # https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+
+              echo 0 | tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+
+              echo kernel.apparmor_restrict_unprivileged_userns=0 | tee /etc/sysctl.d/60-apparmor-namespace.conf
+
+
+              # Configure GitHub CLI
+
+              sudo -u ubuntu bash -c \\"gh config set prompt disabled\\"
+
+
+              # Create setup script
+
+              mkdir -p /opt/scripts
+
+              cat << 'EOF' > /opt/scripts/start-app.sh
+
+              #!/bin/bash
+
+
+              # Set S3 bucket name
+
+              S3_BUCKET_NAME=\\"",
+              {
+                "Ref": "WorkerSourceBucket539ACD15",
+              },
+              "\\"
+
+              ETAG_FILE=\\"/opt/myapp/.source_etag\\"
+
+              SOURCE_TAR_NAME=\\"source.tar.gz\\"
+
+
+              # Enable strict mode for safety
+
+              set -e
+
+
+              # Function to download and extract fresh source files
+
+              download_fresh_files() {
+
+              \\  echo \\"Downloading fresh source files.\\"
+
+              \\  # Clean up existing files
+
+              \\  rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
+
+              \\ \\ 
+
+              \\  # Download source code from S3
+
+              \\  aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
+
+              \\ \\ 
+
+              \\  # Extract and clean up
+
+              \\  tar -xvzf $SOURCE_TAR_NAME
+
+              \\  rm -f $SOURCE_TAR_NAME
+
+              \\ \\ 
+
+              \\  # Install dependencies and build
+
+              \\  npm ci
+
+              \\  npm run build -w packages/agent-core
+
+
+              \\  # Save the ETag
+
+              \\  echo \\"$CURRENT_ETAG\\" > \\"$ETAG_FILE\\"
+
+              }
+
+
+              # Get current ETag from S3
+
+              CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
+
+
+              # Check if we can use cached source code
+
+              if [ -f \\"$ETAG_FILE\\" ]; then
+
+              \\  CACHED_ETAG=$(cat $ETAG_FILE)
+
+              \\ \\ 
+
+              \\  if [ \\"$CURRENT_ETAG\\" == \\"$CACHED_ETAG\\" ]; then
+
+              \\    echo \\"ETag matches. Using existing source files.\\"
+
+              \\    # Files are already in place, no need to do anything
+
+              \\  else
+
+              \\    # ETag doesn't match, need to download fresh files
+
+              \\    download_fresh_files
+
+              \\  fi
+
+              else
+
+              \\  # No ETAG file, need to download fresh files
+
+              \\  download_fresh_files
+
+              fi
+
+
+              if [ \\"$NO_START\\" == \\"true\\" ]; then
+
+              \\  echo \\"NO_START=true is passed. Existing...\\"
+
+              \\  exit 0
+
+              fi
+
+
+              # Set up dynamic environment variables
+
+              TOKEN=$(curl -s -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+              export SLACK_CHANNEL_ID=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+
+              export SLACK_THREAD_TS=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+
+              export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query \\"Parameter.Value\\" --output text)
+
+              export GITHUB_PERSONAL_ACCESS_TOKEN=\\"\\"
+
+
+              # Start app
+
+              cd packages/worker
+
+              npx playwright install chromium
+
+              npx tsx src/main.ts
+
+              EOF
+
+
+              # Make script executable and set ownership
+
+              chmod +x /opt/scripts/start-app.sh
+
+              chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+
+              # cache worker files
+
+              sudo -u ubuntu bash -i -c \\"NO_START=true /opt/scripts/start-app.sh\\"
+
+
+              cat << EOF > /etc/systemd/system/myapp.service
+
+              [Unit]
+
+              Description=My Node.js Application
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              User=ubuntu
+
+              WorkingDirectory=/opt/myapp
+
+
+              ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
+
+              Restart=always
+
+              RestartSec=10
+
+              TimeoutStartSec=600
+
+              TimeoutStopSec=10s
+
+              StandardOutput=journal
+
+              StandardError=journal
+
+              SyslogIdentifier=myapp
+
+              # Static environment variables
+
+              Environment=AWS_REGION=us-east-1
+
+              Environment=EVENT_HTTP_ENDPOINT=https://",
+              {
+                "Fn::GetAtt": [
+                  "WorkerBusApi8460ABC0",
+                  "Dns.Http",
+                ],
+              },
+              "
+
+              Environment=GITHUB_APP_PRIVATE_KEY_PATH=/opt/private-key.pem
+
+              Environment=GITHUB_APP_ID=123456
+
+              Environment=GITHUB_APP_INSTALLATION_ID=9876543
+
+              Environment=TABLE_NAME=",
+              {
+                "Ref": "StorageHistory251A3AE8",
+              },
+              "
+
+              Environment=BUCKET_NAME=",
+              {
+                "Ref": "StorageImageBucket99BA9550",
+              },
+              "
+
+              Environment=BEDROCK_AWS_ACCOUNTS=
+
+              Environment=BEDROCK_AWS_ROLE_NAME=
+
+              # Environment=MODEL_OVERRIDE=nova-pro
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              # Configure Fluent Bit for CloudWatch Logs
+
+              mkdir -p /etc/fluent-bit
+
+
+              cat << EOF > /etc/fluent-bit/fluent-bit.conf
+
+              [SERVICE]
+
+              \\    Flush        5
+
+              \\    Daemon       Off
+
+              \\    Log_Level    info
+
+
+              [INPUT]
+
+              \\    Name         systemd
+
+              \\    Tag          myapp
+
+              \\    Systemd_Filter    _SYSTEMD_UNIT=myapp.service
+
+
+              [FILTER]
+
+              \\    Name         modify
+
+              \\    Match        myapp
+
+              \\    Remove_regex ^(?!MESSAGE).+$
+
+
+              [OUTPUT]
+
+              \\    Name         cloudwatch_logs
+
+              \\    Match        myapp
+
+              \\    region       us-east-1
+
+              \\    log_group_name    ",
+              {
+                "Ref": "WorkerLogGroup67ABCFFE",
+              },
+              "
+
+              \\    log_stream_name   log-\\\\\${WORKER_ID}
+
+              \\    auto_create_group false
+
+              EOF
+
+
+              # Create Fluent Bit startup script
+
+              cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
+
+              #!/bin/bash
+
+
+              TOKEN=$(curl -s -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+
+              exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+
+              EOF
+
+
+              # Make script executable
+
+              chmod +x /opt/scripts/start-fluent-bit.sh
+
+
+              # Create and configure Fluent Bit systemd service
+
+              cat << EOF > /etc/systemd/system/fluent-bit.service
+
+              [Unit]
+
+              Description=Fluent Bit
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              ExecStart=/opt/scripts/start-fluent-bit.sh
+
+              Restart=always
+
+              RestartSec=5
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              systemctl daemon-reload
+
+              systemctl enable fluent-bit
+
+              systemctl enable myapp
+
+              \\      "
+  - name: validate
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+  - name: test
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+",
+            ],
+          ],
+        },
+        "Name": "TestMainStackWorkerImageBuilderImagePipelineV2B9301B6DWorkerDependencies",
+        "Platform": "Linux",
+        "Version": {
+          "Fn::GetAtt": [
+            "WorkerImageBuilderWorkerDependenciesVersion4BF2F39E",
+            "version",
+          ],
+        },
+      },
+      "Type": "AWS::ImageBuilder::Component",
+    },
+    "WorkerImageBuilderImageRecipeVersion51A6E2BF": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "ServiceTimeout": "20",
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4CE16D83A",
+            "Arn",
+          ],
+        },
+        "initialVersion": "0.0.0",
+        "key": {
+          "Fn::Join": [
+            "",
+            [
+              "{"parentImage":"{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}","subnetId":"",
+              {
+                "Ref": "VpcV2PublicSubnet1SubnetD67FC535",
+              },
+              "","securityGroups":["",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderSecurityGroup45E41ABB",
+                  "GroupId",
+                ],
+              },
+              ""],"amiIdSsmPath":"/remote-swe/worker/ami-id","amiIdSsmAccountId":"123456789012","amiIdSsmRegion":"us-east-1","ebsVolumeConfigurations":[{"deviceName":"/dev/sda1","ebs":{"encrypted":true,"volumeSize":50,"volumeType":"gp3"}}],"componentsVersion":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderWorkerDependenciesVersion4BF2F39E",
+                  "version",
+                ],
+              },
+              ""}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::ImageBuilderVersioning",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerImageBuilderPurgeAmiCacheBF0FB7E9": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "WorkerImageBuilderPurgeAmiCacheCustomResourcePolicy864B61A7",
+      ],
+      "Properties": {
+        "Create": "{"service":"@aws-sdk/client-ssm","action":"DeleteParameter","parameters":{"Name":"/remote-swe/worker/ami-id"},"ignoreErrorCodesMatching":"ParameterNotFound","physicalResourceId":{"id":"v2"}}",
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": "{"service":"@aws-sdk/client-ssm","action":"DeleteParameter","parameters":{"Name":"/remote-swe/worker/ami-id"},"ignoreErrorCodesMatching":"ParameterNotFound","physicalResourceId":{"id":"v2"}}",
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerImageBuilderPurgeAmiCacheCustomResourcePolicy864B61A7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:DeleteParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/remote-swe/worker/ami-id",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WorkerImageBuilderPurgeAmiCacheCustomResourcePolicy864B61A7",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "WorkerImageBuilderRunPipelineA153A00F": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "WorkerImageBuilderRunPipelineCustomResourcePolicy37323E03",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"@aws-sdk/client-imagebuilder","action":"StartImagePipelineExecution","parameters":{"imagePipelineArn":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161",
+                  "Arn",
+                ],
+              },
+              ""},"physicalResourceId":{"id":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImageRecipeVersion51A6E2BF",
+                  "version",
+                ],
+              },
+              "#v2"}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"@aws-sdk/client-imagebuilder","action":"StartImagePipelineExecution","parameters":{"imagePipelineArn":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161",
+                  "Arn",
+                ],
+              },
+              ""},"physicalResourceId":{"id":"",
+              {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImageRecipeVersion51A6E2BF",
+                  "version",
+                ],
+              },
+              "#v2"}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WorkerImageBuilderRunPipelineCustomResourcePolicy37323E03": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "imagebuilder:StartImagePipelineExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "WorkerImageBuilderImagePipelineV2ImagePipelineF6B46161",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WorkerImageBuilderRunPipelineCustomResourcePolicy37323E03",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "WorkerImageBuilderSecurityGroup45E41ABB": {
+      "Properties": {
+        "GroupDescription": "TestMainStack/Worker/ImageBuilder/SecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "VpcV257066EE3",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "WorkerImageBuilderWorkerDependenciesVersion4BF2F39E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "ServiceTimeout": "20",
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "ImageBuilderVersioning153e8b47ce274abca3b1ad890c5d81e4CE16D83A",
+            "Arn",
+          ],
+        },
+        "initialVersion": "0.0.0",
+        "key": {
+          "Fn::Join": [
+            "",
+            [
+              "name: MyComponentDocument
+description: This is an example component document
+schemaVersion: 1
+phases:
+  - name: build
+    steps:
+      - name: InstallUpdates
+        action: UpdateOS
+      - name: InstallDependencies
+        action: ExecuteBash
+        inputs:
+          commands:
+            - "#!/bin/bash
+
+              apt-get -o DPkg::Lock::Timeout=-1 update
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y python3-pip unzip
+
+              ln -s -f /usr/bin/pip3 /usr/bin/pip
+
+              ln -s -f /usr/bin/python3 /usr/bin/python
+
+
+              # Install docker https://docs.docker.com/engine/install/ubuntu/#set-up-the-repository
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y ca-certificates curl
+
+              install -m 0755 -d /etc/apt/keyrings
+
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+              chmod a+r /etc/apt/keyrings/docker.asc
+
+
+              echo   \\"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu   $(. /etc/os-release && echo \\"\${UBUNTU_CODENAME:-$VERSION_CODENAME}\\") stable\\" |   tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+              apt-get -o DPkg::Lock::Timeout=-1 update
+
+              apt-get -o DPkg::Lock::Timeout=-1 install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+              groupadd docker
+
+              usermod -aG docker ubuntu
+
+
+              # Install Node.js
+
+              sudo -u ubuntu bash -c \\"curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash\\"
+
+              sudo -u ubuntu bash -c -i \\"nvm install 22\\"
+
+
+              # Install AWS CLI
+
+              curl \\"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\\" -o \\"awscliv2.zip\\"
+
+              unzip -q awscliv2.zip
+
+              sudo ./aws/install
+
+
+              # Install Fluent Bit
+
+              curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+
+
+              # Install GitHub CLI https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+
+              (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))   && sudo mkdir -p -m 755 /etc/apt/keyrings   && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg   && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg   && echo \\"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null   && sudo apt-get -o DPkg::Lock::Timeout=-1 update   && sudo apt-get -o DPkg::Lock::Timeout=-1 install gh -y
+
+
+              # Configure Git user for ubuntu
+
+              sudo -u ubuntu bash -c 'git config --global user.name \\"remote-swe-app[bot]\\"'
+
+              sudo -u ubuntu bash -c 'git config --global user.email \\"123456+remote-swe-app[bot]@users.noreply.github.com\\"'
+
+
+              # install uv
+
+              sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+
+              aws ssm get-parameter     --name /remote-swe/github/app-private-key     --query \\"Parameter.Value\\"     --output text > /opt/private-key.pem
+
+              curl -L \\"https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64\\" -o gh-token
+
+              chmod +x gh-token
+
+              mv gh-token /usr/bin
+
+              mkdir -p /opt/myapp && cd /opt/myapp
+
+              chown -R ubuntu:ubuntu /opt/myapp
+
+
+              # Install Playwright dependencies
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install-deps\\"
+
+              sudo -u ubuntu bash -i -c \\"npx playwright install chromium\\"
+
+              # Disable Ubuntu security feature to get chromium working
+
+              # https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+
+              echo 0 | tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+
+              echo kernel.apparmor_restrict_unprivileged_userns=0 | tee /etc/sysctl.d/60-apparmor-namespace.conf
+
+
+              # Configure GitHub CLI
+
+              sudo -u ubuntu bash -c \\"gh config set prompt disabled\\"
+
+
+              # Create setup script
+
+              mkdir -p /opt/scripts
+
+              cat << 'EOF' > /opt/scripts/start-app.sh
+
+              #!/bin/bash
+
+
+              # Set S3 bucket name
+
+              S3_BUCKET_NAME=\\"",
+              {
+                "Ref": "WorkerSourceBucket539ACD15",
+              },
+              "\\"
+
+              ETAG_FILE=\\"/opt/myapp/.source_etag\\"
+
+              SOURCE_TAR_NAME=\\"source.tar.gz\\"
+
+
+              # Enable strict mode for safety
+
+              set -e
+
+
+              # Function to download and extract fresh source files
+
+              download_fresh_files() {
+
+              \\  echo \\"Downloading fresh source files.\\"
+
+              \\  # Clean up existing files
+
+              \\  rm -rf ./{*,.*} 2>/dev/null || echo \\"Cleaning up existing files\\"
+
+              \\ \\ 
+
+              \\  # Download source code from S3
+
+              \\  aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
+
+              \\ \\ 
+
+              \\  # Extract and clean up
+
+              \\  tar -xvzf $SOURCE_TAR_NAME
+
+              \\  rm -f $SOURCE_TAR_NAME
+
+              \\ \\ 
+
+              \\  # Install dependencies and build
+
+              \\  npm ci
+
+              \\  npm run build -w packages/agent-core
+
+
+              \\  # Save the ETag
+
+              \\  echo \\"$CURRENT_ETAG\\" > \\"$ETAG_FILE\\"
+
+              }
+
+
+              # Get current ETag from S3
+
+              CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
+
+
+              # Check if we can use cached source code
+
+              if [ -f \\"$ETAG_FILE\\" ]; then
+
+              \\  CACHED_ETAG=$(cat $ETAG_FILE)
+
+              \\ \\ 
+
+              \\  if [ \\"$CURRENT_ETAG\\" == \\"$CACHED_ETAG\\" ]; then
+
+              \\    echo \\"ETag matches. Using existing source files.\\"
+
+              \\    # Files are already in place, no need to do anything
+
+              \\  else
+
+              \\    # ETag doesn't match, need to download fresh files
+
+              \\    download_fresh_files
+
+              \\  fi
+
+              else
+
+              \\  # No ETAG file, need to download fresh files
+
+              \\  download_fresh_files
+
+              fi
+
+
+              if [ \\"$NO_START\\" == \\"true\\" ]; then
+
+              \\  echo \\"NO_START=true is passed. Existing...\\"
+
+              \\  exit 0
+
+              fi
+
+
+              # Set up dynamic environment variables
+
+              TOKEN=$(curl -s -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+              export SLACK_CHANNEL_ID=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+
+              export SLACK_THREAD_TS=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+
+              export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query \\"Parameter.Value\\" --output text)
+
+              export GITHUB_PERSONAL_ACCESS_TOKEN=\\"\\"
+
+
+              # Start app
+
+              cd packages/worker
+
+              npx playwright install chromium
+
+              npx tsx src/main.ts
+
+              EOF
+
+
+              # Make script executable and set ownership
+
+              chmod +x /opt/scripts/start-app.sh
+
+              chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+
+              # cache worker files
+
+              sudo -u ubuntu bash -i -c \\"NO_START=true /opt/scripts/start-app.sh\\"
+
+
+              cat << EOF > /etc/systemd/system/myapp.service
+
+              [Unit]
+
+              Description=My Node.js Application
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              User=ubuntu
+
+              WorkingDirectory=/opt/myapp
+
+
+              ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
+
+              Restart=always
+
+              RestartSec=10
+
+              TimeoutStartSec=600
+
+              TimeoutStopSec=10s
+
+              StandardOutput=journal
+
+              StandardError=journal
+
+              SyslogIdentifier=myapp
+
+              # Static environment variables
+
+              Environment=AWS_REGION=us-east-1
+
+              Environment=EVENT_HTTP_ENDPOINT=https://",
+              {
+                "Fn::GetAtt": [
+                  "WorkerBusApi8460ABC0",
+                  "Dns.Http",
+                ],
+              },
+              "
+
+              Environment=GITHUB_APP_PRIVATE_KEY_PATH=/opt/private-key.pem
+
+              Environment=GITHUB_APP_ID=123456
+
+              Environment=GITHUB_APP_INSTALLATION_ID=9876543
+
+              Environment=TABLE_NAME=",
+              {
+                "Ref": "StorageHistory251A3AE8",
+              },
+              "
+
+              Environment=BUCKET_NAME=",
+              {
+                "Ref": "StorageImageBucket99BA9550",
+              },
+              "
+
+              Environment=BEDROCK_AWS_ACCOUNTS=
+
+              Environment=BEDROCK_AWS_ROLE_NAME=
+
+              # Environment=MODEL_OVERRIDE=nova-pro
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              # Configure Fluent Bit for CloudWatch Logs
+
+              mkdir -p /etc/fluent-bit
+
+
+              cat << EOF > /etc/fluent-bit/fluent-bit.conf
+
+              [SERVICE]
+
+              \\    Flush        5
+
+              \\    Daemon       Off
+
+              \\    Log_Level    info
+
+
+              [INPUT]
+
+              \\    Name         systemd
+
+              \\    Tag          myapp
+
+              \\    Systemd_Filter    _SYSTEMD_UNIT=myapp.service
+
+
+              [FILTER]
+
+              \\    Name         modify
+
+              \\    Match        myapp
+
+              \\    Remove_regex ^(?!MESSAGE).+$
+
+
+              [OUTPUT]
+
+              \\    Name         cloudwatch_logs
+
+              \\    Match        myapp
+
+              \\    region       us-east-1
+
+              \\    log_group_name    ",
+              {
+                "Ref": "WorkerLogGroup67ABCFFE",
+              },
+              "
+
+              \\    log_stream_name   log-\\\\\${WORKER_ID}
+
+              \\    auto_create_group false
+
+              EOF
+
+
+              # Create Fluent Bit startup script
+
+              cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
+
+              #!/bin/bash
+
+
+              TOKEN=$(curl -s -X PUT \\"http://169.254.169.254/latest/api/token\\" -H \\"X-aws-ec2-metadata-token-ttl-seconds: 900\\")
+
+              export WORKER_ID=$(curl -s -H \\"X-aws-ec2-metadata-token: $TOKEN\\" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+
+              exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+
+              EOF
+
+
+              # Make script executable
+
+              chmod +x /opt/scripts/start-fluent-bit.sh
+
+
+              # Create and configure Fluent Bit systemd service
+
+              cat << EOF > /etc/systemd/system/fluent-bit.service
+
+              [Unit]
+
+              Description=Fluent Bit
+
+              After=network.target
+
+
+              [Service]
+
+              Type=simple
+
+              ExecStart=/opt/scripts/start-fluent-bit.sh
+
+              Restart=always
+
+              RestartSec=5
+
+
+              [Install]
+
+              WantedBy=multi-user.target
+
+              EOF
+
+
+              systemctl daemon-reload
+
+              systemctl enable fluent-bit
+
+              systemctl enable myapp
+
+              \\      "
+  - name: validate
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+  - name: test
+    steps:
+      - name: HelloWorldStep
+        action: ExecuteBash
+        inputs:
+          commands:
+            - aws --version
+            - docker --version
+            - python --version
+            - gh --version
+            - sudo -u ubuntu bash -i -c "uv --version"
+            - sudo -u ubuntu bash -i -c "uvx --version"
+            - sudo -u ubuntu bash -i -c "node --version"
+            - sudo -u ubuntu bash -i -c "npm --version"
+            - sudo -u ubuntu bash -i -c "npx --version"
+",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::ImageBuilderVersioning",
+      "UpdateReplacePolicy": "Delete",
     },
     "WorkerLaunchTemplateCB68F8E3": {
       "DependsOn": [
@@ -1612,7 +5277,7 @@ exports[`Snapshot test 1`] = `
         "LaunchTemplateData": {
           "BlockDeviceMappings": [
             {
-              "DeviceName": "/dev/xvda",
+              "DeviceName": "/dev/sda1",
               "Ebs": {
                 "Encrypted": true,
                 "VolumeSize": 50,
@@ -1629,7 +5294,7 @@ exports[`Snapshot test 1`] = `
             },
           },
           "ImageId": {
-            "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61x8664C96584B6F00A464EAD1953AFF4B05118Parameter",
+            "Ref": "SsmParameterValueawsservicecanonicalubuntuserver2404stablecurrentamd64hvmebsgp3amiidC96584B6F00A464EAD1953AFF4B05118Parameter",
           },
           "InstanceType": "t3.large",
           "MetadataOptions": {
@@ -1670,57 +5335,144 @@ exports[`Snapshot test 1`] = `
                 "",
                 [
                   "#!/bin/bash
+apt-get -o DPkg::Lock::Timeout=-1 update
+apt-get -o DPkg::Lock::Timeout=-1 install -y python3-pip unzip
+ln -s -f /usr/bin/pip3 /usr/bin/pip
+ln -s -f /usr/bin/python3 /usr/bin/python
 
-export AWS_REGION=us-east-1
-while true; do
-  # this sometimes fails. so retry. https://github.com/amazonlinux/amazon-linux-2023/issues/397#issuecomment-1760177301
-  dnf install -y nodejs20 docker git python3.12 python3.12-pip 'dnf-command(config-manager)' && break
-done
-ln -s -f /usr/bin/node-20 /usr/bin/node
-ln -s -f /usr/bin/npm-20 /usr/bin/npm
-ln -s -f /usr/bin/npx-20 /usr/bin/npx
-ln -s -f /usr/bin/python3.12 /usr/bin/python
-ln -s -f /usr/bin/pip3.12 /usr/bin/pip
-service docker start
-usermod -a -G docker ec2-user
+# Install docker https://docs.docker.com/engine/install/ubuntu/#set-up-the-repository
+apt-get -o DPkg::Lock::Timeout=-1 install -y ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+echo   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu   $(. /etc/os-release && echo "\${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" |   tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt-get -o DPkg::Lock::Timeout=-1 update
+apt-get -o DPkg::Lock::Timeout=-1 install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+groupadd docker
+usermod -aG docker ubuntu
+
+# Install Node.js
+sudo -u ubuntu bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash"
+sudo -u ubuntu bash -c -i "nvm install 22"
+
+# Install AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -q awscliv2.zip
+sudo ./aws/install
 
 # Install Fluent Bit
 curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
 
-# https://github.com/cli/cli/blob/trunk/docs/install_linux.md#dnf4
-dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-while true; do
-  dnf install -y gh --repo gh-cli && break
-done
+# Install GitHub CLI https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+(type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))   && sudo mkdir -p -m 755 /etc/apt/keyrings   && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg   && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null   && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg   && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null   && sudo apt-get -o DPkg::Lock::Timeout=-1 update   && sudo apt-get -o DPkg::Lock::Timeout=-1 install gh -y
 
-# https://github.com/amazonlinux/amazon-linux-2023/discussions/417#discussioncomment-8246163
-while true; do
-  dnf install -y https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm && break
-done
-
-# Configure Git user for ec2-user
-sudo -u ec2-user bash -c 'git config --global user.name "remote-swe-app[bot]"'
-sudo -u ec2-user bash -c 'git config --global user.email "123456+remote-swe-app[bot]@users.noreply.github.com"'
+# Configure Git user for ubuntu
+sudo -u ubuntu bash -c 'git config --global user.name "remote-swe-app[bot]"'
+sudo -u ubuntu bash -c 'git config --global user.email "123456+remote-swe-app[bot]@users.noreply.github.com"'
 
 # install uv
-sudo -u ec2-user bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
-
-
+sudo -u ubuntu bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
 aws ssm get-parameter     --name /remote-swe/github/app-private-key     --query "Parameter.Value"     --output text > /opt/private-key.pem
 curl -L "https://github.com/Link-/gh-token/releases/download/v2.0.4/linux-amd64" -o gh-token
 chmod +x gh-token
 mv gh-token /usr/bin
-
-
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
-WORKER_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
-SLACK_CHANNEL_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
-SLACK_THREAD_TS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
-SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query "Parameter.Value" --output text)
-GITHUB_PERSONAL_ACCESS_TOKEN=""
-
 mkdir -p /opt/myapp && cd /opt/myapp
-chown -R ec2-user:ec2-user /opt/myapp
+chown -R ubuntu:ubuntu /opt/myapp
+
+# Install Playwright dependencies
+sudo -u ubuntu bash -i -c "npx playwright install-deps"
+sudo -u ubuntu bash -i -c "npx playwright install chromium"
+# Disable Ubuntu security feature to get chromium working
+# https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+echo 0 | tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+echo kernel.apparmor_restrict_unprivileged_userns=0 | tee /etc/sysctl.d/60-apparmor-namespace.conf
+
+# Configure GitHub CLI
+sudo -u ubuntu bash -c "gh config set prompt disabled"
+
+# Create setup script
+mkdir -p /opt/scripts
+cat << 'EOF' > /opt/scripts/start-app.sh
+#!/bin/bash
+
+# Set S3 bucket name
+S3_BUCKET_NAME="",
+                  {
+                    "Ref": "WorkerSourceBucket539ACD15",
+                  },
+                  ""
+ETAG_FILE="/opt/myapp/.source_etag"
+SOURCE_TAR_NAME="source.tar.gz"
+
+# Enable strict mode for safety
+set -e
+
+# Function to download and extract fresh source files
+download_fresh_files() {
+  echo "Downloading fresh source files."
+  # Clean up existing files
+  rm -rf ./{*,.*} 2>/dev/null || echo "Cleaning up existing files"
+  
+  # Download source code from S3
+  aws s3 cp s3://$S3_BUCKET_NAME/source/$SOURCE_TAR_NAME ./$SOURCE_TAR_NAME
+  
+  # Extract and clean up
+  tar -xvzf $SOURCE_TAR_NAME
+  rm -f $SOURCE_TAR_NAME
+  
+  # Install dependencies and build
+  npm ci
+  npm run build -w packages/agent-core
+
+  # Save the ETag
+  echo "$CURRENT_ETAG" > "$ETAG_FILE"
+}
+
+# Get current ETag from S3
+CURRENT_ETAG=$(aws s3api head-object --bucket $S3_BUCKET_NAME --key source/$SOURCE_TAR_NAME --query ETag --output text)
+
+# Check if we can use cached source code
+if [ -f "$ETAG_FILE" ]; then
+  CACHED_ETAG=$(cat $ETAG_FILE)
+  
+  if [ "$CURRENT_ETAG" == "$CACHED_ETAG" ]; then
+    echo "ETag matches. Using existing source files."
+    # Files are already in place, no need to do anything
+  else
+    # ETag doesn't match, need to download fresh files
+    download_fresh_files
+  fi
+else
+  # No ETAG file, need to download fresh files
+  download_fresh_files
+fi
+
+if [ "$NO_START" == "true" ]; then
+  echo "NO_START=true is passed. Existing..."
+  exit 0
+fi
+
+# Set up dynamic environment variables
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
+export WORKER_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+export SLACK_CHANNEL_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/SlackChannelId)
+export SLACK_THREAD_TS=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/SlackThreadTs)
+export SLACK_BOT_TOKEN=$(aws ssm get-parameter --name /remote-swe/slack/bot-token --query "Parameter.Value" --output text)
+export GITHUB_PERSONAL_ACCESS_TOKEN=""
+
+# Start app
+cd packages/worker
+npx playwright install chromium
+npx tsx src/main.ts
+EOF
+
+# Make script executable and set ownership
+chmod +x /opt/scripts/start-app.sh
+chown ubuntu:ubuntu /opt/scripts/start-app.sh
+
+# cache worker files
+sudo -u ubuntu bash -i -c "NO_START=true /opt/scripts/start-app.sh"
 
 cat << EOF > /etc/systemd/system/myapp.service
 [Unit]
@@ -1729,35 +5481,19 @@ After=network.target
 
 [Service]
 Type=simple
-User=ec2-user
+User=ubuntu
 WorkingDirectory=/opt/myapp
 
-# Pre-start script to download and update source code from S3
-ExecStartPre=/bin/bash -c '\\
-    rm -rf ./{*,.*} && \\
-    aws s3 cp s3://",
-                  {
-                    "Ref": "WorkerSourceBucket539ACD15",
-                  },
-                  "/source/source.tar.gz ./source.tar.gz && \\
-    tar -xvzf source.tar.gz && \\
-    rm -f source.tar.gz && \\
-    npm install && \\
-    npx playwright install chromium && \\
-    gh config set prompt disabled'
-
-ExecStart=/bin/bash -l -c 'npx tsx src/main.ts'
+ExecStart=/bin/bash -i -c /opt/scripts/start-app.sh
 Restart=always
 RestartSec=10
+TimeoutStartSec=600
 TimeoutStopSec=10s
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=myapp
-Environment=AWS_REGION=$AWS_REGION
-Environment=WORKER_ID=$WORKER_ID
-Environment=SLACK_CHANNEL_ID=$SLACK_CHANNEL_ID
-Environment=SLACK_THREAD_TS=$SLACK_THREAD_TS
-Environment=SLACK_BOT_TOKEN=$SLACK_BOT_TOKEN
+# Static environment variables
+Environment=AWS_REGION=us-east-1
 Environment=EVENT_HTTP_ENDPOINT=https://",
                   {
                     "Fn::GetAtt": [
@@ -1769,7 +5505,6 @@ Environment=EVENT_HTTP_ENDPOINT=https://",
 Environment=GITHUB_APP_PRIVATE_KEY_PATH=/opt/private-key.pem
 Environment=GITHUB_APP_ID=123456
 Environment=GITHUB_APP_INSTALLATION_ID=9876543
-Environment=GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN
 Environment=TABLE_NAME=",
                   {
                     "Ref": "StorageHistory251A3AE8",
@@ -1782,11 +5517,11 @@ Environment=BUCKET_NAME=",
                   "
 Environment=BEDROCK_AWS_ACCOUNTS=
 Environment=BEDROCK_AWS_ROLE_NAME=
+# Environment=MODEL_OVERRIDE=nova-pro
 
 [Install]
 WantedBy=multi-user.target
 EOF
-
 
 # Configure Fluent Bit for CloudWatch Logs
 mkdir -p /etc/fluent-bit
@@ -1816,9 +5551,22 @@ cat << EOF > /etc/fluent-bit/fluent-bit.conf
                     "Ref": "WorkerLogGroup67ABCFFE",
                   },
                   "
-    log_stream_name   log-$WORKER_ID
+    log_stream_name   log-\\\${WORKER_ID}
     auto_create_group false
 EOF
+
+# Create Fluent Bit startup script
+cat << 'EOF' > /opt/scripts/start-fluent-bit.sh
+#!/bin/bash
+
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 900")
+export WORKER_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/RemoteSweWorkerId)
+
+exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+EOF
+
+# Make script executable
+chmod +x /opt/scripts/start-fluent-bit.sh
 
 # Create and configure Fluent Bit systemd service
 cat << EOF > /etc/systemd/system/fluent-bit.service
@@ -1828,22 +5576,20 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf
+ExecStart=/opt/scripts/start-fluent-bit.sh
 Restart=always
 RestartSec=5
-Environment=WORKER_ID=$WORKER_ID
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-
 systemctl daemon-reload
 systemctl enable fluent-bit
-systemctl start fluent-bit
 systemctl enable myapp
-systemctl start myapp
-",
+      
+systemctl start fluent-bit
+systemctl start myapp",
                 ],
               ],
             },
@@ -1980,12 +5726,28 @@ systemctl start myapp
                 "dynamodb:UpdateItem",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "StorageHistory251A3AE8",
-                  "Arn",
-                ],
-              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StorageHistory251A3AE8",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StorageHistory251A3AE8",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
             },
             {
               "Action": [
@@ -2038,7 +5800,10 @@ systemctl start myapp
               ],
             },
             {
-              "Action": "appsync:EventSubscribe",
+              "Action": [
+                "appsync:EventPublish",
+                "appsync:EventSubscribe",
+              ],
               "Effect": "Allow",
               "Resource": {
                 "Fn::Join": [
@@ -2282,6 +6047,128 @@ systemctl start myapp
       },
       "Type": "Custom::CDKBucketDeployment",
       "UpdateReplacePolicy": "Delete",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`Snapshot test: UsEast1Stack 1`] = `
+{
+  "Outputs": {
+    "ExportsOutputRefSignPayloadHandlerFunctionVersionF9FE430AFB7A5BC1": {
+      "Export": {
+        "Name": "TestUsEast1Stack:ExportsOutputRefSignPayloadHandlerFunctionVersionF9FE430AFB7A5BC1",
+      },
+      "Value": {
+        "Ref": "SignPayloadHandlerFunctionVersionF9FE430A",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "SignPayloadHandlerCFEAA14C": {
+      "DependsOn": [
+        "SignPayloadHandlerServiceRole29261232",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "REDACTED",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "SignPayloadHandlerServiceRole29261232",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SignPayloadHandlerCurrentVersionF9D1B5C2b714756b2226025fe03626397b33cde4": {
+      "Properties": {
+        "FunctionName": {
+          "Ref": "SignPayloadHandlerCFEAA14C",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "SignPayloadHandlerFunctionVersionF9FE430A": {
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "SignPayloadHandlerCurrentVersionF9D1B5C2b714756b2226025fe03626397b33cde4",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "SignPayloadHandlerServiceRole29261232": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "edgelambda.amazonaws.com",
+                  "lambda.amazonaws.com",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
   },
   "Rules": {

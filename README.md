@@ -2,6 +2,10 @@
 
 This is an example implementation of a fully autonomous software development AI agent. The agent works in its own dedicated development environment, freeing you from being tied to your laptop!
 
+**TL;DR:** This is a self-hosted, fully open-source solution on AWS that offers a similar experience to Devin, OpenAI Codex, or Google Jules.
+
+*日本語版のREADMEは[こちら](README_ja.md)をご覧ください。*
+
 ![Concept](./docs/imgs/concept.png)
 
 ## Key Features
@@ -14,6 +18,19 @@ This is an example implementation of a fully autonomous software development AI 
 * Reads knowledge from your preferred formats (.clinerules, CLAUDE.md, etc.)
 * Can work on OSS forked repositories!
 
+## Examples 
+
+Some of the agent sessions by Remote SWE agents:
+
+| Example 1 | Example 2 | Example 3 | Example 4 |
+|:--------:|:--------:|:--------:|:--------:|
+| ![example1](./docs/imgs/example1.png) | ![example2](./docs/imgs/example2.png) | ![example3](./docs/imgs/example3.png) | ![example4](./docs/imgs/example4.png) |
+| Instruct via GitHub issue. [Resulting PR](https://github.com/aws-samples/remote-swe-agents/pull/17) | single instruction to multiple repos [PR#1](https://github.com/aws-samples/trpc-nextjs-ssr-prisma-lambda/pull/16), [PR#2](https://github.com/aws-samples/prisma-lambda-cdk/pull/37), [PR#3](https://github.com/aws-samples/distributed-load-testing-with-locust-on-ecs/pull/25) | The agent can also input and output images as well. | The agent can speak other languages than English as well. [Resulting PR](https://github.com/tmokmss/deploy-time-build/pull/32) |
+
+### Pull Requests Created by the Remote SWE Agents
+
+You can view all the public pull requests created by the agent [here](https://github.com/search?q=is%3Apr+author%3Aremote-swe-user&type=pullrequests). All of the commits pushed from the GitHub user is written by the agent autonomously.
+
 ## Installation Steps
 
 Since this project is fully self-hosted, the setup process requires several manual operations such as configuring a Slack app.
@@ -25,7 +42,8 @@ Please carefully follow all the steps below. If you encounter any issues, we're 
 - npm (version 9 or higher)
 - AWS CLI
 - AWS IAM profile with appropriate permissions
-- Bedrock Claude Sonnet 3.7 model is [enabled on](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access) both us-east-1 and us-west-2 regions
+- Docker
+- Bedrock Claude Sonnet 3.7 model is [enabled on](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html#getting-started-model-access) us-west-2 regions
 - Slack Workspace
 - GitHub Account
 
@@ -64,7 +82,7 @@ Then you can run cdk deploy. Note that the above parameter names are referenced 
 ```bash
 cd cdk && npm ci
 npx cdk bootstrap
-npx cdk deploy
+npx cdk deploy --all
 ```
 
 Deployment usually takes about 5 minutes. After the deployment, you should see the endpoint of your Slack Bolt app. Make note of the `SlackBoltEndpointUrl` from the CDK output as you'll need it in the next step.
@@ -223,7 +241,7 @@ This way the repository is automatically inferred from the URL, and it can also 
 
 ### Integrating with MCP Servers
 
-As our agent can work as an MCP client, you can easily integrate it with various MCP servers. To configure the integration, you can edit [`claude_desktop_config.json`](./worker/claude_desktop_config.json) and run CDK deploy. For example,
+As our agent can work as an MCP client, you can easily integrate it with various MCP servers. To configure the integration, you can edit [`mcp.json`](./packages/worker/mcp.json) and run CDK deploy. For example,
 
 ```json
   "mcpServers": {
@@ -238,6 +256,22 @@ As our agent can work as an MCP client, you can easily integrate it with various
 ```
 
 All the new agents can now use MCP servers as their tools.
+
+### Overriding the Foundation Model
+
+By default the Remote SWE uses Claude Sonnet 3.7 as the foundation model. You can override this configuration by the below steps:
+
+1. Edit [cdk/lib/constructs/worker/index.ts](./cdk/lib/constructs/worker/index.ts) to set the environment variable `MODEL_OVERRIDE` for the worker service. The available values are: `sonnet3.5v1, sonnet3.5, sonnet3.7, haiku3.5, nova-pro, opus4, and sonnet4`
+   ```diff
+   Environment=BEDROCK_AWS_ROLE_NAME=${props.loadBalancing?.roleName ?? ''}
+   + Environment=MODEL_OVERRIDE=nova-pro
+
+   [Install]
+   ```
+2. Run cdk deploy
+3. New workers now use the override model.
+
+Note that this feature is highly experimental and we generally recommend to use the default model for optimized experience.
 
 ## How it works
 
@@ -283,9 +317,10 @@ Here we assume you request 100 sessions per month. The monthly cost is proportio
 | Lambda | Requests: 30 invocations/session | 0.0006 |
 | Lambda | Duration: 128MB, 1s/invocation | 0.00017 |
 | API Gateway | Requests: 20 requests/session | 0.002 |
-| Bedrock | Input: Sonnet 3.7 400k tokens/session | 120.00 |
+| Bedrock | Input (cache write): Sonnet 3.7 100k tokens/session | 37.5 |
+| Bedrock | Input (cache read): Sonnet 3.7 1M tokens/session | 30.00 |
 | Bedrock | Output: Sonnet 3.7 20k tokens/session | 30.00 |
-| TOTAL | | 171.73 |
+| TOTAL | | 120 |
 
 Additionally, when the system is not in use (i.e., no messages are sent to the agents), the ongoing costs are minimal (~0 USD).
 
@@ -296,6 +331,9 @@ You can clean up all the resources you created by the following commands:
 npx cdk destroy --force
 ```
 
+> [!NOTE]  
+> When executing `cdk deploy`, an EC2 Image Builder pipeline is launched asynchronously. Please wait at least 30 minutes after deployment before destroying the stack. If stack deletion fails, wait about 30 minutes and try `cdk destroy` again.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
@@ -303,4 +341,3 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
-
