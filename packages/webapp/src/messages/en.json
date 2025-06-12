@@ -4,7 +4,9 @@
   },
   "header": {
     "title": "Remote SWE Agents",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "menu": "Menu",
+    "language": "Language"
   },
   "sessions": {
     "title": "Sessions",
@@ -16,6 +18,7 @@
       "send": "Send",
       "placeholder": "Type your message here..."
     },
+    "sendWithCtrlEnter": "Send with Ctrl+Enter",
     "loading": "Loading...",
     "enterMessage": "Please enter a message",
     "newSessionTitle": "Create New Session",
@@ -33,9 +36,16 @@
       "stopped": "Stopped",
       "terminated": "Terminated"
     },
+    "agentStatus": {
+      "working": "Working",
+      "pending": "Awaiting Response",
+      "completed": "Completed",
+      "unknown": "Unknown"
+    },
     "agentStartingMessage": "The AI agent is starting up. This may take up to 2 minutes. Please wait...",
     "aiAgentResponding": "AI Agent is responding...",
     "enterYourMessage": "Enter your message...",
+    "waitingForImageUpload": "Waiting for image upload...",
     "noSessionsFound": "No sessions found",
     "createSessionToStart": "Create a new session to start chatting with AI agents",
     "usingTool": "Using Tool",
@@ -53,7 +63,11 @@
     "todoStatus_in_progress": "In Progress",
     "todoStatus_completed": "Completed",
     "todoStatus_cancelled": "Cancelled",
-    "lastUpdated": "Last Updated"
+    "lastUpdated": "Last Updated",
+    "markAsCompleted": "Mark as completed",
+    "markAsIncomplete": "Mark as incomplete",
+    "completed": "Completed",
+    "incomplete": "Incomplete"
   },
   "home": {
     "title": "Welcome to Remote SWE Agents",
@@ -86,6 +100,17 @@
     "creatingSession": "Creating Session...",
     "createSessionButton": "Create Session & Start Conversation",
     "addImage": "Add Image",
-    "imagesCount": "{count} images"
+    "imagesCount": "{count} images",
+    "waitingForImageUpload": "Waiting for image upload..."
+  },
+  "prompt_settings": {
+    "title": "Common Prompt Settings",
+    "description": "Configure a common prompt that will be added to all agent interactions",
+    "configTitle": "Agent Prompt Configuration",
+    "configDescription": "This prompt will be added to all agents' system prompt. Use this to set organization-wide guidelines or instructions.",
+    "placeholder": "Enter common prompt text here...",
+    "saveButton": "Save Prompt",
+    "saveSuccess": "Common prompt has been successfully saved",
+    "saveError": "Failed to save common prompt"
   }
 }
