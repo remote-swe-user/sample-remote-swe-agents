@@ -2,6 +2,7 @@ import { getConversationHistory, getSession, getTodoList, noOpFiltering } from '
 import SessionPageClient from './component/SessionPageClient';
 import { MessageView } from './component/MessageList';
 import { notFound } from 'next/navigation';
+import { RefreshOnFocus } from '@/components/RefreshOnFocus';
 
 interface SessionPageProps {
   params: Promise<{
@@ -77,7 +78,6 @@ export default async function SessionPage({ params }: SessionPageProps) {
         const results = (message.content ?? []).filter((c) => c.toolResult != undefined);
 
         if (results.length > 0) {
-          console.log('toolResult set');
           const detail = results
             .map(
               (block) =>
@@ -125,11 +125,15 @@ export default async function SessionPage({ params }: SessionPageProps) {
   const todoList = await getTodoList(workerId);
 
   return (
-    <SessionPageClient
-      workerId={workerId}
-      initialMessages={messages}
-      initialInstanceStatus={session.instanceStatus}
-      initialTodoList={todoList}
-    />
+    <>
+      <SessionPageClient
+        workerId={workerId}
+        initialMessages={messages}
+        initialInstanceStatus={session.instanceStatus}
+        initialAgentStatus={session.agentStatus}
+        initialTodoList={todoList}
+      />
+      <RefreshOnFocus />
+    </>
   );
 }

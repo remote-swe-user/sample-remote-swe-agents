@@ -1,16 +1,7 @@
-import { GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, TableName } from './aws';
 
-type SessionItem = {
-  PK: string;
-  SK: string;
-  workerId: string;
-  createdAt: number;
-  LSI1: string;
-  initialMessage: string;
-  instanceStatus: 'starting' | 'running' | 'stopped' | 'terminated';
-  sessionCost: number;
-};
+import { AgentStatus, SessionItem } from '../schema';
 
 export const saveSessionInfo = async (workerId: string, initialMessage: string) => {
   const now = Date.now();
@@ -28,6 +19,7 @@ export const saveSessionInfo = async (workerId: string, initialMessage: string) 
         initialMessage,
         instanceStatus: 'terminated',
         sessionCost: 0,
+        agentStatus: 'pending',
       } satisfies SessionItem,
     })
   );
@@ -71,4 +63,25 @@ export const getSessions = async (): Promise<SessionItem[]> => {
   );
 
   return (res.Items ?? []) as SessionItem[];
+};
+
+/**
+ * Update agent status for a session
+ * @param workerId Worker ID of the session to update
+ * @param agentStatus New agent status
+ */
+export const updateSessionAgentStatus = async (workerId: string, agentStatus: AgentStatus): Promise<void> => {
+  await ddb.send(
+    new UpdateCommand({
+      TableName,
+      Key: {
+        PK: 'sessions',
+        SK: workerId,
+      },
+      UpdateExpression: 'SET agentStatus = :agentStatus',
+      ExpressionAttributeValues: {
+        ':agentStatus': agentStatus,
+      },
+    })
+  );
 };
