@@ -4,7 +4,11 @@
   },
   "header": {
     "title": "Remote SWE Agents",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "menu": "Menu",
+    "language": "Language",
+    "promptSettings": "Prompt Settings",
+    "apiKeys": "API Keys"
   },
   "sessions": {
     "title": "Sessions",
@@ -16,6 +20,7 @@
       "send": "Send",
       "placeholder": "Type your message here..."
     },
+    "sendWithCtrlEnter": "Send with Ctrl+Enter",
     "loading": "Loading...",
     "enterMessage": "Please enter a message",
     "newSessionTitle": "Create New Session",
@@ -33,12 +38,20 @@
       "stopped": "Stopped",
       "terminated": "Terminated"
     },
+    "agentStatus": {
+      "working": "Working",
+      "pending": "Waiting",
+      "completed": "Completed",
+      "unknown": "Unknown"
+    },
     "agentStartingMessage": "The AI agent is starting up. This may take up to 2 minutes. Please wait...",
     "aiAgentResponding": "AI Agent is responding...",
     "enterYourMessage": "Enter your message...",
+    "waitingForImageUpload": "Waiting for image upload...",
     "noSessionsFound": "No sessions found",
     "createSessionToStart": "Create a new session to start chatting with AI agents",
     "usingTool": "Using Tool",
+    "executing": "Executing...",
     "showRawJson": "Show raw JSON",
     "hideRawJson": "Hide raw JSON",
     "input": "input",
@@ -53,7 +66,11 @@
     "todoStatus_in_progress": "In Progress",
     "todoStatus_completed": "Completed",
     "todoStatus_cancelled": "Cancelled",
-    "lastUpdated": "Last Updated"
+    "lastUpdated": "Last Updated",
+    "markAsCompleted": "Mark as completed",
+    "markAsIncomplete": "Mark as incomplete",
+    "completed": "Completed",
+    "incomplete": "Incomplete"
   },
   "home": {
     "title": "Welcome to Remote SWE Agents",
@@ -86,6 +103,62 @@
     "creatingSession": "Creating Session...",
     "createSessionButton": "Create Session & Start Conversation",
     "addImage": "Add Image",
-    "imagesCount": "{count} images"
+    "imagesCount": "{count} images",
+    "waitingForImageUpload": "Waiting for image upload..."
+  },
+  "prompt_settings": {
+    "title": "Common Prompt Settings",
+    "description": "Configure a common prompt that will be added to all agent interactions",
+    "configTitle": "Agent Prompt Configuration",
+    "configDescription": "This prompt will be added to all agents' system prompt. Use this to set organization-wide guidelines or instructions.",
+    "placeholder": "Enter common prompt text here...",
+    "saveButton": "Save Prompt",
+    "saveSuccess": "Common prompt has been successfully saved",
+    "saveError": "Failed to save common prompt"
+  },
+  "api_settings": {
+    "title": "API Keys",
+    "description": "Manage API keys for programmatic access",
+    "createNew": "Create New API Key",
+    "createDesc": "API keys are used to authenticate HTTP API requests. They should be kept secret.",
+    "yourKeys": "Your API Keys",
+    "yourKeysDesc": "These are the API keys associated with your account.",
+    "noKeys": "No API keys found. Create one to get started.",
+    "createdAgo": "Created {timeAgo}",
+    "unnamedKey": "Unnamed key",
+    "createKey": "Create Key",
+    "creatingKey": "Creating...",
+    "deleteKey": "Delete",
+    "deletingKey": "Deleting...",
+    "copyKey": "Copy",
+    "descriptionPlaceholder": "Enter a description for this API key (optional)",
+    "refresh": "Refresh",
+    "newKeyCreated": "New API key created - Save this key now, you won't be able to see it again!",
+    "keyCopied": "API key copied to clipboard",
+    "copyFailed": "Failed to copy API key",
+    "createSuccess": "API key created successfully",
+    "createError": "Failed to create API key",
+    "deleteSuccess": "API key deleted successfully",
+    "deleteError": "Failed to delete API key",
+    "loadError": "Failed to load API keys",
+    "deleteConfirmTitle": "Are you sure?",
+    "deleteConfirmDesc": "This action cannot be undone. This will permanently delete this API key and revoke access for any services using it.",
+    "cancel": "Cancel",
+    "documentation": {
+      "title": "API Documentation",
+      "desc": "How to use the Remote SWE Agents API",
+      "authentication": "Authentication",
+      "authDesc": "All API requests require authentication using an API key. Include your API key in the Authorization header:",
+      "createSession": "Create a new session",
+      "createSessionDesc": "Create a new agent session with an initial message:",
+      "createSessionReturns": "Returns a workerId that can be used to send additional messages:",
+      "sendMessage": "Send message to a session",
+      "sendMessageDesc": "Send a follow-up message to an existing session:",
+      "sendMessageNote": "Replace :sessionId with the workerId returned when creating the session.",
+      "sendMessageReturns": "Returns a success status:",
+      "examples": "Example cURL requests",
+      "exampleCreateSession": "Create a new session:",
+      "exampleSendMessage": "Send follow-up message:"
+    }
   }
 }
