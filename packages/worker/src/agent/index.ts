@@ -15,13 +15,16 @@ import {
   renderToolResult,
   sendSystemMessage,
   updateSessionCost,
+  readCommonPrompt,
 } from '@remote-swe-agents/agent-core/lib';
 import pRetry, { AbortError } from 'p-retry';
 import { bedrockConverse } from '@remote-swe-agents/agent-core/lib';
 import { getMcpToolSpecs, tryExecuteMcpTool } from './mcp';
 import {
+  addIssueCommentTool,
   ciTool,
   cloneRepositoryTool,
+  createPRTool,
   commandExecutionTool,
   DefaultWorkingDirectory,
   fileEditTool,
@@ -36,8 +39,12 @@ import {
 import { findRepositoryKnowledge } from './lib/knowledge';
 import { sendWebappEvent } from '@remote-swe-agents/agent-core/lib';
 import { CancellationToken } from '../common/cancellation-token';
+import { updateAgentStatusWithEvent } from '../common/status';
 
 export const onMessageReceived = async (workerId: string, cancellationToken: CancellationToken) => {
+  // Update agent status to 'working' when starting a turn
+  await updateAgentStatusWithEvent(workerId, 'working');
+
   const { items: allItems, slackUserId } = await pRetry(
     async (attemptCount) => {
       const res = await getConversationHistory(workerId);
@@ -150,12 +157,25 @@ Users will primarily request software engineering assistance including bug fixes
 3. Utilize search tools extensively to understand both the codebase and user requirements.
 4. Implement solutions using all available tools
 5. Verify solutions with tests when possible. NEVER assume specific testing frameworks or scripts. Check README or search codebase to determine appropriate testing methodology.
-6. After completing tasks, run linting and type-checking commands (e.g., npm run lint, npm run typecheck, ruff, etc.) if available to verify code correctness. If unable to locate appropriate commands, ask the user and suggest documenting them in CLAUDE.md for future reference.
+6. After completing tasks, run linting and type-checking commands (e.g., npm run lint, npm run typecheck, ruff, etc.) if available to verify code correctness.
 7. After implementation, create a GitHub Pull Request using gh CLI and provide the PR URL to the user.
 8. When users send feedback, create additional git commits in the same branch and pull request.
 `;
 
   let systemPrompt = baseSystemPrompt;
+
+  // Try to append common prompt from DynamoDB
+  const tryAppendCommonPrompt = async () => {
+    try {
+      const commonPromptData = await readCommonPrompt();
+      if (commonPromptData && commonPromptData.additionalSystemPrompt) {
+        systemPrompt = `${baseSystemPrompt}\n\n## Common Prompt\n${commonPromptData.additionalSystemPrompt}`;
+      }
+    } catch (error) {
+      console.error('Error retrieving common prompt:', error);
+    }
+  };
+  await tryAppendCommonPrompt();
 
   const tryAppendRepositoryKnowledge = async () => {
     try {
@@ -169,7 +189,8 @@ Users will primarily request software engineering assistance including bug fixes
         const { content: knowledgeContent, found: foundKnowledgeFile } = findRepositoryKnowledge(repoDirectory);
 
         if (foundKnowledgeFile) {
-          systemPrompt = `${baseSystemPrompt}\n## Repository Knowledge\n${knowledgeContent}`;
+          // If common prompt is already added, append repository knowledge after it
+          systemPrompt = `${systemPrompt}\n## Repository Knowledge\n${knowledgeContent}`;
         }
       }
     } catch (error) {
@@ -181,6 +202,7 @@ Users will primarily request software engineering assistance including bug fixes
   const tools = [
     ciTool,
     cloneRepositoryTool,
+    createPRTool,
     commandExecutionTool,
     reportProgressTool,
     // thinkTool,
@@ -188,6 +210,7 @@ Users will primarily request software engineering assistance including bug fixes
     sendImageTool,
     getPRCommentsTool,
     replyPRCommentTool,
+    addIssueCommentTool,
     readImageTool,
     todoInitTool,
     todoUpdateTool,
@@ -397,6 +420,11 @@ Users will primarily request software engineering assistance including bug fixes
       );
       appendedItems.push(...savedItems);
     } else {
+      if (!cancellationToken.isCancelled) {
+        // Update agent status to 'pending' when finishing a turn.
+        // When the turn is cancelled, do not update the status to avoid race condition.
+        await updateAgentStatusWithEvent(workerId, 'pending');
+      }
       const mention = slackUserId ? `<@${slackUserId}> ` : '';
       const finalMessage = res.output?.message;
       if (finalMessage?.content == null || finalMessage.content?.length == 0) {

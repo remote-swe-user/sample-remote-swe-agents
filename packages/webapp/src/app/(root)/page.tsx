@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Bot, Zap } from 'lucide-react';
+import { MessageSquare, Bot, Plus, DollarSign } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 export default async function Home() {
@@ -19,17 +19,23 @@ export default async function Home() {
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('title')}</h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">{t('description')}</p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link href="/sessions">
-                <Button size="lg" className="flex items-center gap-2">
+                <Button variant="outline" size="lg" className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />
                   {sessionsT('title')}
                 </Button>
               </Link>
               <Link href="/sessions/new">
+                <Button size="lg" className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  <span>{sessionsT('newSession')}</span>
+                </Button>
+              </Link>
+              <Link href="/cost">
                 <Button variant="outline" size="lg" className="flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
-                  {sessionsT('newSession')}
+                  <DollarSign className="w-5 h-5" />
+                  {t('costAnalysis')}
                 </Button>
               </Link>
             </div>

@@ -1,24 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useScrollPosition() {
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [isBottom, setIsBottom] = useState(false);
+  const rafRef = useRef<number>(0);
 
-  function handleScroll() {
-    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const handleScroll = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
 
-    const windowScroll = document.documentElement.scrollTop;
+    rafRef.current = requestAnimationFrame(() => {
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const windowScroll = document.documentElement.scrollTop;
+      const scrolled = height > 0 ? windowScroll / height : 0;
 
-    const scrolled = windowScroll / height;
-
-    setScrollPosition(scrolled);
-  }
+      const newIsBottom = scrolled > 0.95;
+      setIsBottom((prev) => (prev !== newIsBottom ? newIsBottom : prev));
+    });
+  }, []);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
-  });
+  }, [handleScroll]);
 
-  return scrollPosition;
+  return { isBottom };
 }
